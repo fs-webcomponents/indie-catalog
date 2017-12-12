@@ -6,7 +6,7 @@
 # dependencies to gh-pages.
 
 # Run in a clean directory passing in a GitHub org and repo name
-org="polymerlabs"
+org="fs-webcomponents"
 repo="indie-catalog"
 #branch="master" # default to master when branch isn't specified
 
