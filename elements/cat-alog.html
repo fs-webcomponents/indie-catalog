@@ -18,8 +18,10 @@
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
-
 <link rel="import" href="../bower_components/iron-location/iron-location.html">
+
+<link rel="import" href="../bower_components/fs-signin/fs-signin.html">
+<link rel="import" href="../bower_components/fs-client/fs-client.html">
 
 <link rel="import" href="list-item.html">
 
@@ -80,6 +82,13 @@
     <iron-media-query query="(max-width: 767px)" query-matches="{{small}}"></iron-media-query>
     <iron-location id="url" path="null"></iron-location>
     <iron-ajax auto handle-as="json" id="ajax"></iron-ajax>
+    <fs-client 
+      app-key="a02j00000099Mc2AAE" 
+      redirect-uri="." 
+      save-access-token 
+      exchange-code
+      token-cookie-path="/"
+      redirect-after-sign-in="."></fs-client>
 
     <app-header-layout>
       <app-header style="height: 256px;" condenses fixed effects="resize-title" slot="header">
@@ -89,6 +98,7 @@
         <app-toolbar></app-toolbar>
         <app-toolbar>
           <div main-title>FamilySearch elements catalog</div>
+          <fs-signin></fs-signin>
         </app-toolbar>
       </app-header>
 
@@ -106,7 +116,12 @@
           </dom-repeat>
         </div>
         <div class="right">
-          <p id="help">💡 Choose a docs/demo from the menu to begin. </p>
+          <div id="help">
+            <p>💡 Choose a docs/demo from the menu to begin.</p>
+            <p>Use the Sign In button in the header. Most demos aren't very useful
+            without signing in. The demos often have their own sign in button
+            but the redirect URIs for OAuth aren't configured for them to work.</p>
+          </div>
           <iframe hidden id="frame" frameBorder="0" height="100%" width="100%"></iframe>
         </div>
       </div>
