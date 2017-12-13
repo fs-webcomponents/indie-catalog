@@ -1,12 +1,16 @@
 {
   "packages": {
-    "fs-signin": {
-      "git": "https://github.com/fs-webcomponents/fs-signin",
-      "description": "FamilySearch sign in button"
+    "fs-add-person": {
+      "git": "https://github.com/fs-webcomponents/fs-add-person",
+      "description": "Dialog that walks the user through the process of adding a new person to the FamilySearch Family Tree"
     },
     "fs-person-summary": {
       "git": "https://github.com/fs-webcomponents/fs-person-summary",
       "description": "Summary of a FamilySearch person"
+    },
+    "fs-signin": {
+      "git": "https://github.com/fs-webcomponents/fs-signin",
+      "description": "FamilySearch sign in button"
     }
   }
 }
