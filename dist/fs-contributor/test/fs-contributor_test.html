@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-contributor test</title>
+
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-contributor.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <fs-contributor contributor-id="PPPP-PPP"></fs-contributor>
+      </template>
+    </test-fixture>
+
+    <script>
+    
+      suite('fs-contributor', function() {
+        
+        const responseBody = `{
+          "agents" : [ {
+            "id" : "cis.user.MMMM-QYVP",
+            "links" : {
+              "self" : {
+                "href" : "https://integration.familysearch.org/platform/users/agents/MMDZ-8G7"
+              }
+            },
+            "accounts" : [ {
+              "serviceHomepage" : {
+                "resource" : "https://familysearch.org/"
+              },
+              "accountName" : "api-user-2003132863"
+            } ]
+          } ]
+        }`;
+        let server;
+        server = sinon.fakeServer.create({
+          respondImmediately: true
+        });
+        server.respondWith(
+          'GET',
+          /\/platform\/users\/agents\/PPPP-PPP/,
+          [
+            200,
+            { 'Content-Type': 'application/json' },
+            responseBody
+          ]
+        );
+        
+        test('loads the contributor name', function(done) {
+          const element = fixture('basic');
+          element.addEventListener('contributor-name-changed', function(){
+            expect(element.contributorName).to.equal('api-user-2003132863');
+            done();
+          });
+        });
+
+        test('contributor name is cached', function() {
+          var element = fixture('basic');
+          expect(element.contributorName).to.equal('api-user-2003132863');
+        });
+
+      });
+    </script>
+
+  </body>
+</html>

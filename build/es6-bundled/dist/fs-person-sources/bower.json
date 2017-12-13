@@ -1,0 +1,27 @@
+{
+  "name": "fs-person-sources",
+  "version": "4.0.1",
+  "description": "List sources attached to a person in the Family Tree",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "FamilySearch"
+  ],
+  "main": "fs-person-sources.html",
+  "license": "MIT",
+  "homepage": "https://github.com/fs-webcomponents/fs-person-sources/",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0",
+    "fs-request": "fs-webcomponents/fs-request#^4.0.0",
+    "paper-item": "PolymerElements/paper-item#^2.0.0",
+    "paper-card": "PolymerElements/paper-card#^2.0.0"
+  },
+  "devDependencies": {
+    "fs-signin": "fs-webcomponents/fs-signin#^4.0.0"
+  }
+}

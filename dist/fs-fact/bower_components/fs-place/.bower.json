@@ -1,0 +1,29 @@
+{
+  "name": "fs-place",
+  "main": "fs-place.html",
+  "version": "4.1.2",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "paper-autocomplete": "^3.3.0",
+    "fs-request": "fs-webcomponents/fs-request#^4.1.0",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  },
+  "homepage": "https://github.com/fs-webcomponents/fs-place",
+  "_release": "4.1.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.1.2",
+    "commit": "6cb22dcef51eb9e21d309fed440a28b6fa773453"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-place.git",
+  "_target": "^4.0.0",
+  "_originalSource": "fs-webcomponents/fs-place"
+}

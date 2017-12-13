@@ -1,0 +1,48 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../paper-input/paper-input.html">
+
+<dom-module id="fs-fact-value">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <div hidden$="[[edit]]">{{value}}</div>
+    <template is="dom-if" if="[[edit]]">
+      <paper-input value="{{value}}" label="Value" no-label-float></paper-input>  
+    </template>
+  </template>
+
+  <script>
+    (function(){
+      
+      /**
+       * `fs-fact-value`
+       * 
+       *
+       * @customElement
+       * @polymer
+       * @demo demo/index.html
+       */
+      class FsFactValue extends Polymer.Element {
+        static get is() { return 'fs-fact-value'; }
+        static get properties() {
+          return {
+            value: {
+              type: String,
+              notify: true
+            },
+            edit: {
+              type: Boolean,
+              value: false
+            }
+          };
+        }
+      }
+
+      window.customElements.define(FsFactValue.is, FsFactValue);
+    })();
+  </script>
+</dom-module>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-person-vitals demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../fs-person-vitals.html">
+    <link rel="import" href="../../fs-signin/fs-signin.html">
+    <link rel="import" href="../../fs-client/fs-client.html">
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <fs-client 
+      app-key="a02j00000099Mc2AAE" 
+      redirect-uri="." 
+      save-access-token 
+      exchange-code 
+      token-cookie-path="/"
+      debounce-duplicates
+      redirect-after-sign-in="."></fs-client>
+    <div class="vertical-section-container centered">
+      <fs-signin></fs-signin>
+      <h3>Basic fs-person-vitals demo</h3>
+      <demo-snippet>
+        <template>
+          <fs-person-vitals person-id="L58F-W2G"></fs-person-vitals>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

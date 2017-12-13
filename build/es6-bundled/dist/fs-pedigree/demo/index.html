@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>fs-pedigree Demo</title>
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="../../fs-client/fs-client.html">
+    <link rel="import" href="../../fs-signin/fs-signin.html">
+    <link rel="import" href="../fs-pedigree.html">
+    <link rel="import" href="../../paper-styles/demo-pages.html">
+    <link rel="import" href="../../paper-input/paper-input.html">
+  </head>
+  <body unresolved>
+    <style>
+      paper-input {
+        max-width: 200px;
+      }
+      
+      header {
+        background-color: #fff;
+        border-bottom: 1px solid #ccc;
+        padding: 1em;
+        float: left;
+      }
+      
+      fs-pedigree {
+        width: 100%;
+        z-index: -1;
+        position: absolute;
+        top: 165px;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding-left: 2em;
+      }
+    </style>
+
+    <fs-client 
+      app-key="a02j00000099Mc2AAE" 
+      redirect-uri="." 
+      environment="sandbox" 
+      save-access-token 
+      exchange-code 
+      token-cookie-path="/"
+      redirect-after-sign-in="."></fs-client>
+    
+    <header>
+      <fs-signin></fs-signin>
+      <br><br>
+      <paper-input id="person-id" label="person ID" value="KWQM-1XT"></paper-input>
+    </header>
+    
+    <fs-pedigree person-id="KWQM-1XT" add-persons></fs-pedigree>
+
+    <script>
+      var pedigree = document.querySelector('fs-pedigree');
+      var personId = document.getElementById('person-id');
+      
+      // Update pedigree when the person ID in the paper-input changes
+      personId.addEventListener('change', function(e){
+        if(this.value){
+          pedigree.personId = this.value;
+        }
+      });
+      
+      pedigree.addEventListener('person-click', function(e){
+        if(e.detail.personId){
+          console.log('person clicked', e.detail.personId);
+        }
+      });
+      
+      pedigree.addEventListener('add-person', function(e){
+        console.log('add person', e.detail);
+      });
+    </script>
+    </script>
+  </body>
+</html>

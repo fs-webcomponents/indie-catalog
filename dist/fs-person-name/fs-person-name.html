@@ -1,0 +1,204 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../polymer/lib/mixins/mutable-data.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../fs-conclusion-mixin/fs-conclusion-mixin.html">
+
+<dom-module id="fs-person-name">
+  <template>
+    <style>
+      .name-parts {
+        display: flex;
+      }
+      
+      paper-input {
+        flex: 1;
+      }
+      
+      paper-input:not(:first-child) {
+        margin-left: 8px;
+      }
+    </style>
+    <div class="name-parts" hidden$="[[!edit]]">
+      <paper-input label="Title" no-label-float value="{{_prefix}}"></paper-input>
+      <paper-input label="First Names" no-label-float value="{{_given}}"></paper-input>
+      <paper-input label="Last Name" no-label-float value="{{_surname}}"></paper-input>
+      <paper-input label="Suffix" no-label-float value="{{_suffix}}"></paper-input>
+    </div>
+    <div hidden$="[[edit]]">{{_prefix}} {{_given}} {{_surname}} {{_suffix}}</div>
+  </template>
+
+  <script>
+    /**
+     * `fs-person-name`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsPersonName extends Polymer.MutableData(FsConclusionMixin(Polymer.Element)) {
+      static get is() { return 'fs-person-name'; }
+      static get properties() {
+        return {
+          
+          name: {
+            type: Object,
+            observer: '_nameChanged',
+          },
+          
+          _prefix: {
+            type: String,
+            observer: '_prefixChanged'
+          },
+          
+          _given: {
+            type: String,
+            observer: '_givenChanged'
+          },
+          
+          _surname: {
+            type: String,
+            observer: '_surnameChanged'
+          },
+          
+          _suffix: {
+            type: String,
+            observer: '_suffixChanged'
+          }
+          
+        };
+      }
+      
+      static get template() {
+        return super.conclusionTemplate(this.is);
+      }
+      
+      /**
+       * When the name changes, process the name parts and update the internal values
+       */
+      _nameChanged(name) {
+        this.conclusion = name;
+        const nameParts = this._namePartsMap(this._getNameParts());
+        this._prefix = nameParts['http://gedcomx.org/Prefix'];
+        this._given = nameParts['http://gedcomx.org/Given'];
+        this._surname = nameParts['http://gedcomx.org/Surname'];
+        this._suffix = nameParts['http://gedcomx.org/Suffix'];
+      }
+      
+      _prefixChanged(value) {
+        this._updateNameParts('http://gedcomx.org/Prefix', value);
+      }
+      
+      _givenChanged(value) {
+        this._updateNameParts('http://gedcomx.org/Given', value);
+      }
+      
+      _surnameChanged(value) {
+        this._updateNameParts('http://gedcomx.org/Surname', value);
+      }
+      
+      _suffixChanged(value) {
+        this._updateNameParts('http://gedcomx.org/Suffix', value);
+      }
+      
+      _conclusionBody() {
+        return {
+          persons: [{
+            names: [this.name]
+          }]
+        };
+      }
+      
+      _updateNameParts(type, value) {
+        
+        if(value) {
+          value = value.trim();
+        }
+        
+        // First we filter out existing parts of that type
+        const nameParts = this._getNameParts().filter(p => p.type !== type);
+        
+        // Add the new part
+        if(value) {
+          nameParts.push({
+            type,
+            value
+          });
+        }
+        
+        // Update name parts
+        this._setNameParts(nameParts);
+      }
+      
+      _getNameParts() {
+        this._ensureNameForm();
+        return this.name.nameForms[0].parts;
+      }
+      
+      _setNameParts(parts) {
+        if(Array.isArray(parts)) {
+          this._ensureNameForm();
+          this.name.nameForms[0].parts = parts;
+          this.name.nameForms[0].fullText = this._calculateFullText(parts);
+          this.notifyPath('name');
+        }
+      }
+      
+      /**
+       * Given an array of name parts, create a map of type => values.join(' ')
+       */
+      _namePartsMap(parts) {
+        const map = {
+          'http://gedcomx.org/Prefix': [],
+          'http://gedcomx.org/Given': [],
+          'http://gedcomx.org/Surname': [],
+          'http://gedcomx.org/Suffix': []
+        };
+        if(Array.isArray(parts)) {
+          parts.forEach(part => {
+            map[part.type].push(part.value);
+          });
+        }
+        for(let type in map) {
+          map[type] = map[type].join(' ');
+        }
+        return map;
+      }
+      
+      /**
+       * Calculate full text from a list of name parts
+       */
+      _calculateFullText(parts) {
+        const partsMap = this._namePartsMap(parts);
+        return [
+          partsMap['http://gedcomx.org/Prefix'],
+          partsMap['http://gedcomx.org/Given'],
+          partsMap['http://gedcomx.org/Surname'],
+          partsMap['http://gedcomx.org/Suffix']
+        ].filter(part => !!part).join(' ');
+      }
+      
+      /**
+       * Make sure at last one name form exists with a parts array
+       */
+      _ensureNameForm() {
+        if(!this.name) {
+          this.name = {};
+        }
+        if(!Array.isArray(this.name.nameForms)) {
+          this.name.nameForms = [];
+        }
+        if(!this.name.nameForms[0]) {
+          this.name.nameForms.push({});
+        }
+        if(!Array.isArray(this.name.nameForms[0].parts)) {
+          this.name.nameForms[0].parts = [];
+        }
+      }
+      
+    }
+
+    window.customElements.define(FsPersonName.is, FsPersonName);
+  </script>
+</dom-module>

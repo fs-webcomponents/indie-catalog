@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-place demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../fs-place.html">
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <fs-client app-key="a02j00000099Mc2AAE" unauthenticated-session ip-address="127.0.0.1"></fs-client>
+    <div class="vertical-section-container centered">
+      <h3>Empty fs-place</h3>
+      <demo-snippet>
+        <template>
+          <fs-place></fs-place>
+        </template>
+      </demo-snippet>
+      <h3>Display fs-place</h3>
+      <demo-snippet>
+        <template>
+          <fs-place id="display"></fs-place>
+          <script>
+            document.getElementById('display').place = {
+              original: 'Paris, France'
+            };
+          </script>
+        </template>
+      </demo-snippet>
+      <h3>Empty editable fs-place</h3>
+      <demo-snippet>
+        <template>
+          <fs-place edit></fs-place>
+        </template>
+      </demo-snippet>
+      <h3>Preset editable fs-place</h3>
+      <demo-snippet>
+        <template>
+          <fs-place edit id="editable"></fs-place>
+          <script>
+            document.getElementById('editable').place = {
+              original: 'Paris, France'
+            };
+          </script>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

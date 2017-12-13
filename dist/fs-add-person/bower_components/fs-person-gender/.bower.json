@@ -1,0 +1,31 @@
+{
+  "name": "fs-person-gender",
+  "main": "fs-person-gender.html",
+  "version": "4.2.0",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-person-mixin": "fs-webcomponents/fs-person-mixin#^4.0.0",
+    "paper-radio-group": "PolymerElements/paper-radio-group#^2.0.0",
+    "fs-conclusion-mixin": "fs-webcomponents/fs-conclusion-mixin#^4.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
+    "fs-client": "fs-webcomponents/fs-client#^4.1.0",
+    "fs-signin": "fs-webcomponents/fs-signin#^4.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  },
+  "homepage": "https://github.com/fs-webcomponents/fs-person-gender",
+  "_release": "4.2.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.2.0",
+    "commit": "b3040060ba9a6d51c4ce4f29d380ac570f26d167"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-person-gender.git",
+  "_target": "^4.2.0",
+  "_originalSource": "fs-webcomponents/fs-person-gender"
+}

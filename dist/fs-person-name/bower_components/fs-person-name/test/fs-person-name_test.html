@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-person-name test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-person-name.html">
+  </head>
+  <body>
+
+    <test-fixture id="change-part">
+      <template>
+        <fs-person-name></fs-person-name>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('fs-person-name', function() {
+
+        test('changing a name part works', function() {
+          var element = fixture('change-part');
+          element.name = {
+            nameForms: [{
+              parts: [{
+                type: 'http://gedcomx.org/Given',
+                value: 'Mary'
+              }, {
+                type: 'http://gedcomx.org/Surname',
+                value: 'Smith'
+              }]
+            }]
+          };
+          assert.equal(element._given, 'Mary');
+          assert.equal(element._surname, 'Smith');
+          assert.equal(element._prefix, '');
+          assert.equal(element._suffix, '');
+          assert.equal(element.name.nameForms[0].parts.length, 2);
+          
+          element._prefix = 'Mrs';
+          assert.equal(element.name.nameForms[0].parts.length, 3);
+          assert.equal(element.name.nameForms[0].parts[2].type, 'http://gedcomx.org/Prefix');
+          assert.equal(element.name.nameForms[0].parts[2].value, 'Mrs');
+        });
+
+      });
+    </script>
+
+  </body>
+</html>

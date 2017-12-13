@@ -1,0 +1,27 @@
+{
+  "name": "fs-person-mixin",
+  "main": "fs-person-mixin.html",
+  "version": "4.0.1",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0",
+    "fs-request": "fs-webcomponents/fs-request#^4.2.4"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  },
+  "homepage": "https://github.com/fs-webcomponents/fs-person-mixin",
+  "_release": "4.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.0.1",
+    "commit": "b7fd83847a2ff165629d88dd554f5cf56c5c8ea8"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-person-mixin.git",
+  "_target": "^4.0.0",
+  "_originalSource": "fs-webcomponents/fs-person-mixin"
+}

@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>fs-contributor Demo</title>
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script><link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../fs-client/fs-client.html">
+    <link rel="import" href="../../fs-signin/fs-signin.html">
+    <link rel="import" href="../fs-contributor.html">
+    
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles"></style>
+    </custom-style>
+  </head>
+  <body unresolved>
+    <div class="vertical-section-container centered">
+      <fs-client 
+        app-key="a02j00000099Mc2AAE" 
+        redirect-uri="." 
+        save-access-token 
+        exchange-code
+        token-cookie-path="/"
+        redirect-after-sign-in="."></fs-client>
+      <fs-signin></fs-signin>
+      
+      <h3>Basic Usage</h3>
+      <demo-snippet>
+        <template>
+          <fs-contributor contributor-id="MMDZ-8G7"></fs-contributor>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

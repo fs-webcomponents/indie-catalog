@@ -1,0 +1,25 @@
+{
+  "name": "fs-source-attachments",
+  "version": "4.0.0",
+  "description": "List persons that a source (URL) is attached to.",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "FamilySearch"
+  ],
+  "main": "fs-source-attachments.html",
+  "license": "MIT",
+  "homepage": "https://github.com/fs-webcomponents/fs-source-attachments/",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0",
+    "fs-person-chip": "fs-webcomponents/fs-person-chip#^4.0.0",
+    "fs-request": "fs-webcomponents/fs-request#^4.2.1"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
+    "fs-signin": "fs-webcomponents/fs-signin#^4.0.0"
+  }
+}

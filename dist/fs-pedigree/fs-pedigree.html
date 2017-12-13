@@ -1,0 +1,159 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../pannable-mixin/pannable-mixin.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="fs-pedigree-ancestor-group.html">
+
+<!--
+Display a FamilySearch person's pedigree.
+
+    <fs-pedigree person-id="PPPP-PPP"></fs-pedigree>
+    
+@customElement
+@polymer
+@demo demo/index.html
+-->
+<dom-module id="fs-pedigree">
+  <template>
+    <style>
+      :host {
+        display: block;
+        cursor: move;
+      }
+    </style>
+    <div id="groups"></div>
+  </template>
+
+  <script>
+    class FsPedigree extends FSApiAwareMixin(PannableMixin(Polymer.Element)) {
+  
+      static get is() { return 'fs-pedigree'; }
+      
+      /**
+       * Fired when a person is clicked.
+       *
+       * @event person-click
+       * @param {{personId:string}} ID of the person that was clicked.
+       * @param {{sourceEvent:event}} Original click event.
+       */
+       
+      /**
+       * Fired when an "Add Person" button is clicked. At least one of the
+       * documented params will exist, but not all. The params are meant to
+       * be passed on to fs-add-person
+       * 
+       * @event add-person
+       * @param {{childId:string}}
+       * @param {{fatherId:string}}
+       * @param {{motherId:string}}
+       */
+      
+      static get properties() {
+        return {
+          
+          /** ID of the root person */
+          personId: {
+            type: String,
+            observer: '_personIdChanged'
+          },
+          
+          /** 
+           * ID of the root person's spouse, if known. When not specified, the
+           * API will automatically choose a spouse. You may set this property
+           * to specify which spouse will be loaded.
+           */
+          spouseId: {
+            type: String,
+            value: ''
+          },
+          
+          /** Whether to show the "+ Add Person" buttons in the pedigree when a person is missing */
+          addPersons: {
+            type: Boolean,
+            value: false
+          },
+          
+          /** Whether we're panning */
+          _panning: {
+            type: Boolean,
+            value: false
+          },
+          
+          /** Where panning started */
+          _startPanX: {
+            type: Number,
+            value: 0
+          },
+          _startPanY: {
+            type: Number,
+            value: 0
+          },
+          
+          /** How much we've panned */
+          _netPanX: {
+            type: Number,
+            value: 0
+          },
+          _netPanY: {
+            type: Number,
+            value: 0
+          }
+        };
+      }
+      
+      ready() {
+        super.ready();
+        this.setPanningElement(this.$.groups);
+        this.reset();
+      }
+      
+      reload() {
+        // Couples are listed in the DOM in reverse order (for the sake of layering)
+        // so we reverse the list and reload in order from the root on out.
+        Array.from(this.$.groups.children).reverse().forEach((couple) => couple.reload());
+      }
+      
+      reset() {
+        this.$.groups.innerHTML = '';
+        this._addRootGroup();
+      }
+      
+      _personIdChanged() {
+        this.reset();
+      }
+      
+      _addRootGroup() {
+        if(this.personId) {
+          const group = document.createElement('fs-pedigree-ancestor-group');
+          group.personId = this.personId;
+          group.spouseId = this.spouseId;
+          group.rootGroup = true;
+          group.addPersons = this.addPersons;
+          group.clientName = this.clientName;
+          this.$.groups.appendChild(group);
+          this.resetPanning();
+        }
+      }
+      
+      /**
+       * Collapse to the given level by removing all level greater than it.
+       */
+      _collapseTo(level) {
+        this._removeLevels(level + 1);
+      }
+      
+      /**
+       * Remove groups from any level greater than or equal to the given level.
+       */
+      _removeLevels(level) {
+        Array.from(this.$.groups.children).forEach((group) => {
+          if(group.level >= level) {
+            group.remove();
+          }
+        });
+      }
+      
+    }
+    
+    customElements.define(FsPedigree.is, FsPedigree);
+  </script>
+</dom-module>

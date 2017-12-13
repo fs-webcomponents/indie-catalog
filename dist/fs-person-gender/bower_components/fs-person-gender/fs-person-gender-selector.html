@@ -1,0 +1,45 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
+
+<dom-module id="fs-person-gender-selector">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <paper-radio-group selected="{{gender}}" allow-empty-selection>
+      <paper-radio-button disabled="[[disabled]]" name="http://gedcomx.org/Male">Male</paper-radio-button>
+      <paper-radio-button disabled="[[disabled]]" name="http://gedcomx.org/Female">Female</paper-radio-button>
+      <paper-radio-button disabled="[[disabled]]" name="http://gedcomx.org/Unknown">Unknown</paper-radio-button>
+    </paper-radio-group>
+  </template>
+
+  <script>
+    /**
+     * `fs-person-gender-selector`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsPersonGenderSelector extends Polymer.Element {
+      static get is() { return 'fs-person-gender-selector'; }
+      static get properties() {
+        return {
+          gender: {
+            type: String,
+            notify: true
+          },
+          disabled: {
+            type: Boolean,
+            value: false
+          }
+        };
+      }
+    }
+
+    window.customElements.define(FsPersonGenderSelector.is, FsPersonGenderSelector);
+  </script>
+</dom-module>

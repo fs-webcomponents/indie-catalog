@@ -1,0 +1,28 @@
+{
+  "name": "fs-user-mixin",
+  "main": "fs-user-mixin.html",
+  "version": "4.0.2",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-request": "fs-webcomponents/fs-request#^4.2.4",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  },
+  "homepage": "https://github.com/fs-webcomponents/fs-user-mixin",
+  "_release": "4.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.0.2",
+    "commit": "6f40576fb2810531b0d84630a37b06b5c8181268"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-user-mixin.git",
+  "_target": "^4.0.0",
+  "_originalSource": "fs-webcomponents/fs-user-mixin"
+}

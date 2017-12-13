@@ -1,0 +1,91 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-request/fs-request.html">
+
+<!--
+FamilySearch Polymer element for displaying a contributor.
+
+Example:
+
+    <fs-contributor contributor-id="PPP-PPPP"></fs-contributor>
+    
+@group FamilySearch Elements
+@element fs-contributor
+@demo demo/index.html
+-->
+<dom-module id="fs-contributor">
+  <template>
+    <fs-request id="request"
+      client-name="[[clientName]]"
+      url="[[_requestUrl(contributorId)]]" 
+      loading="{{loading}}"
+      require-authentication
+      on-response="_handleResponse"></fs-request>
+    <div>[[text]]</div>
+  </template>
+  <script>
+    
+    class FSContributor extends FSApiAwareMixin(Polymer.Element) {
+      
+      static get is() { return 'fs-contributor'; }
+      
+      static get properties() {
+        return {
+          contributorId: String,
+          contributorName: {
+            type: String,
+            notify: true
+          },
+          loading: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+          text: {
+            type: String,
+            computed: 'computeText(contributorId, contributorName)'
+          }
+        };
+      }
+      
+      ready() {
+        super.ready();
+        
+        if(this.contributorId && !this.contributorName) {
+          
+          // Check for a chached value first
+          if(FSContributor.cache[this.contributorId]) {
+            this.contributorName = FSContributor.cache[this.contributorId];
+            return;
+          }
+          
+          // If it's not cached then load the contributor name from the API
+          this.$.request.generateRequest();
+        }
+      }
+      
+      computeText(contributorId, contributorName) {
+        return contributorName || contributorId;
+      }
+      
+      _requestUrl(contributorId) {
+        return `/platform/users/agents/${this.contributorId}`;
+      }
+      
+      _handleResponse(e) {
+        if(e && e.detail && e.detail.response) {
+          const response = e.detail.response;
+          if(response && response.data && response.data.agents && response.data.agents[0].accounts && response.data.agents[0].accounts[0]) {
+            this.contributorName = response.data.agents[0].accounts[0].accountName;
+            FSContributor.cache[this.contributorId] = this.contributorName;
+          }
+        }
+      }
+      
+    }
+    
+    FSContributor.cache = {};
+    
+    customElements.define('fs-contributor', FSContributor);
+  </script>
+</dom-module>

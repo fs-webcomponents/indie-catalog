@@ -1,0 +1,28 @@
+{
+  "name": "fs-conclusion-mixin",
+  "main": "fs-conclusion-mixin.html",
+  "version": "4.0.0",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0",
+    "fs-attribution": "fs-webcomponents/fs-attribution#^4.0.1"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  },
+  "homepage": "https://github.com/fs-webcomponents/fs-conclusion-mixin",
+  "_release": "4.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.0.0",
+    "commit": "dfcd1d63714392c6a2a7d98a6d9dcdc71dfc85b4"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-conclusion-mixin.git",
+  "_target": "^4.0.0",
+  "_originalSource": "fs-webcomponents/fs-conclusion-mixin"
+}

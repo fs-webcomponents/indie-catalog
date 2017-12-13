@@ -1,0 +1,90 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../fs-person-mixin/fs-person-mixin.html">
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../fs-conclusion-mixin/fs-conclusion-mixin.html">
+<link rel="import" href="fs-person-gender-selector.html">
+
+<dom-module id="fs-person-gender">
+  <template>
+    <template is="dom-if" if="[[editable]]">
+      <div hidden$="[[!edit]]">
+        <fs-person-gender-selector gender="[[gender.type]]" on-gender-changed="_selectionChanged"></fs-person-gender-selector>
+      </div>
+    </template>
+    <div hidden$="[[edit]]">{{_genderDisplay(gender.type)}}</div>
+  </template>
+
+  <script>
+    /**
+     * `fs-person-gender`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsPersonGender extends FSPersonMixin(FsConclusionMixin(Polymer.Element)) {
+      static get is() { return 'fs-person-gender'; }
+      static get properties() {
+        return {
+          gender: {
+            type: Object,
+            notify: true,
+            observer: '_conclusionSync'
+          },
+          
+          saveUrl: {
+            computed: '_computeSaveUrl(personId)'
+          }
+        };
+      }
+      
+      static get template() {
+        return super.conclusionTemplate(this.is);
+      }
+      
+      _personChanged() {
+        if(this.person && this.person.gender) {
+          this.gender = this.person.gender;
+        } else {
+          this.gender = undefined;
+        }
+      }
+      
+      _conclusionSync(gender) {
+        this.conclusion = gender;
+      }
+      
+      _conclusionBody() {
+        return {
+          persons: [{
+            gender: this.gender
+          }]
+        };
+      }
+      
+      _computeSaveUrl(personId) {
+        return `/platform/tree/persons/${personId}`;
+      }
+      
+      _genderDisplay(type) {
+        switch(type) {
+          case 'http://gedcomx.org/Male':
+            return 'Male';
+          case 'http://gedcomx.org/Female':
+            return 'Female';
+          default:
+            return 'Unknown';
+        }
+      }
+      
+      _selectionChanged(e) {
+        this.gender = {type: e.detail.value};
+      }
+      
+    }
+
+    window.customElements.define(FsPersonGender.is, FsPersonGender);
+  </script>
+</dom-module>

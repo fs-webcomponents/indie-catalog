@@ -1,0 +1,70 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../paper-input/paper-textarea.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-contributor/fs-contributor.html">
+
+<dom-module id="fs-attribution">
+  <template>
+    <style>
+      fs-contributor {
+        display: inline-block;
+      }
+    </style>
+    <div hidden$="{{_hideReason(edit, attribution.changeMessage)}}">
+      <div>Reason This Information Is Correct</div>
+      <paper-textarea 
+        hidden$="[[!edit]]"
+        label="Reason"
+        no-label-float
+        value="{{attribution.changeMessage}}"></paper-textarea>
+      <div hidden$="[[edit]]">{{attribution.changeMessage}}</div>
+    </div>
+    <div>
+      Last modified <span>{{_readableDate(attribution.modified)}}</span> by
+      <fs-contributor
+        client-name="[[clientName]]"
+        contributor-id="[[attribution.contributor.resourceId]]"></fs-contributor>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `fs-attribution`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsAttribution extends FSApiAwareMixin(Polymer.Element) {
+      static get is() { return 'fs-attribution'; }
+      static get properties() {
+        return {
+          attribution: Object,
+          
+          /** Whether in edit mode; only affects the reason */
+          edit: {
+            type: Boolean,
+            value: false
+          }
+        };
+      }
+      
+      _readableDate(timestamp) {
+        if(timestamp) {
+          return new Intl.DateTimeFormat('en-GB', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }).format(new Date(timestamp));
+        }
+      }
+      
+      _hideReason(edit, changeMessage) {
+        return !(edit || (changeMessage && changeMessage.trim().length));
+      }
+    }
+
+    window.customElements.define(FsAttribution.is, FsAttribution);
+  </script>
+</dom-module>

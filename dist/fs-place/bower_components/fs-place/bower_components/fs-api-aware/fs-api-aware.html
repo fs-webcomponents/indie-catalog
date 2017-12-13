@@ -1,0 +1,26 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<script>
+  /**
+   * `fs-api-aware`
+   * 
+   * Enables elements to specify which SDK instance is used for API requests.
+   *
+   * @polymer
+   * @mixinFunction
+   */
+  const FSApiAwareMixin = Polymer.dedupingMixin((superClass) => class extends superClass {
+    static get properties() {
+      return {
+        /**
+         * Optional name of the sdk client to use.
+         */
+        clientName: {
+          type: String,
+          value: 'default',
+          reflectToAttribute: true
+        }
+      };
+    }
+  });
+</script>

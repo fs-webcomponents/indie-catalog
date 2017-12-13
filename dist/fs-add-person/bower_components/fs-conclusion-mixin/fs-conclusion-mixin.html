@@ -1,0 +1,172 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-attribution/fs-attribution.html">
+
+<template id="fs-conclusion">
+  <style>
+    :host {
+      display: block;
+    }
+    
+    .toolbar {
+      visibility: hidden;
+      text-align: right;
+    }
+    
+    :host(:hover) .toolbar {
+      visibility: visible;
+    }
+      
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+  <template is="dom-if" if="[[editable]]">
+    <div class="toolbar">
+      <a id="edit" href hidden$="[[edit]]">Edit</a>
+      <a id="close" href hidden$="[[!edit]]">Close</a>
+      <a id="save" href hidden$="[[!_showSaveButton(edit, saveUrl)]]">Save</a>
+    </div>
+  </template>
+  <div id="content"></div>
+  <template is="dom-if" if="[[editable]]">
+    <fs-attribution 
+      hidden$="[[!edit]]"
+      client-name="[[clientName]]"
+      attribution="{{conclusion.attribution}}"
+      edit="[[edit]]"></fs-attribution>
+  </template>
+  <fs-request
+    id="saveRequest"
+    method="POST"
+    client-name="[[clientName]]"
+    url="[[saveUrl]]"
+    loading="{{saving}}"></fs-request>
+</template>
+<script>
+(function(){
+  
+  const myDoc = document.currentScript.ownerDocument;
+  const memoizedTemplates = {};
+  
+  /**
+   * `FsConclusionMixin`
+   * 
+   * Shared code for `fs-fact`, `fs-person-name`, `fs-person-gender`. 
+   * 
+   * The template is designed for base classes to fill in the #content div with
+   * their own content which places the edit toolbar on top and the attribution
+   * on the bottom. The template is used by adding these lines to the base element:
+   * 
+   *     static get template() {
+   *       return super.conclusionTemplate(this.is);
+   *     }
+   * 
+   * FsConclusionMixin expects the conclusion data to be at the `conclusion`
+   * property. If you want your property to be named something different (e.g.
+   * it makes more sense for a fact conclusion to be set on the fact property)
+   * then setup an observer and sync your property with `conclusion.
+   * 
+   *     _conclusionSync(fact) {
+   *       this.conclusion = fact;
+   *     }
+   * 
+   * The base element must also provide the body of the save request by 
+   * implementing the `_conclusionBody()` method which returns an Object that is
+   * serialized into JSON for the request.
+   * 
+   *     _conclusionBody() {
+   *       return { persons: [{ facts: [this.fact] }] };
+   *     };
+   *
+   * @polymer
+   * @mixinFunction
+   * @appliesMixin FSApiAwareMixin
+   */
+  window.FsConclusionMixin = Polymer.dedupingMixin((superClass) => class extends FSApiAwareMixin(superClass) {
+   
+    static get properties() {
+      return {
+        
+        conclusion: {
+          type: Object,
+          notify: true
+        },
+        
+        /**
+         * Whether the conclusion can be edited. This will show a toolbar when the
+         * user hovers over the conclusion.
+         */
+        editable: {
+          type: Boolean,
+          value: false,
+          observer: '_setupEditable'
+        },
+        
+        /**
+         * Whether the conclusion is currently in edit mode
+         */
+        edit: {
+          type: Boolean,
+          value: false
+        },
+        
+        /**
+         * The URL that the conclusion data will be saved to.
+         */
+        saveUrl: String,
+        
+        /**
+         * Whether the conclusion is being saved
+         */
+        saving: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          notify: true
+        }
+      };
+    }
+    
+    /**
+     * Here we grap the fs-conclusion-template and fill it in with the base
+     * template of the element that uses this mixin.
+     */
+    static conclusionTemplate(childClass) {
+      if(!memoizedTemplates[childClass]) {
+        memoizedTemplates[childClass] = document.importNode(myDoc.querySelector('#fs-conclusion'), true);
+        let conclusionTemplate = Polymer.DomModule.import(childClass, 'template');
+        memoizedTemplates[childClass].content.querySelector('#content').appendChild(conclusionTemplate.content);
+      }
+      return memoizedTemplates[childClass];
+    }
+      
+    _showSaveButton(edit, saveUrl) {
+      return edit && saveUrl;
+    }
+      
+    _setupEditable(editable) {
+      if(editable) {
+        setTimeout(() => {
+          this.shadowRoot.querySelector('#edit').addEventListener('click', (e) => {
+            this.edit = true;
+            e.preventDefault();
+          });
+          this.shadowRoot.querySelector('#close').addEventListener('click', (e) => {
+            this.edit = false;
+            e.preventDefault();
+          });
+          this.shadowRoot.querySelector('#save').addEventListener('click', (e) => {
+            this.edit = false;
+            e.preventDefault();
+            const request = this.$.saveRequest;
+            request.body = this._conclusionBody();
+            request.generateRequest();
+          });
+        });
+      }
+    }
+    
+  });
+})();
+</script>

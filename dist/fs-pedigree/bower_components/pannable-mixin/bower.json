@@ -1,0 +1,13 @@
+{
+  "name": "pannable-mixin",
+  "homepage": "https://github.com/fs-webcomponents/pannable-mixin",
+  "version": "1.2.0",
+  "description": "Mixin to make an element pannable",
+  "main": "pannable-mixin.html",
+  "keywords": [
+    "web-component",
+    "panning",
+    "pan"
+  ],
+  "license": "MIT"
+}

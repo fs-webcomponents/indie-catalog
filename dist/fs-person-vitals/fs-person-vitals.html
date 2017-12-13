@@ -1,0 +1,156 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../paper-card/paper-card.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-styles/paper-styles.html">
+<link rel="import" href="../fs-person-mixin/fs-person-mixin.html">
+<link rel="import" href="../fs-fact/fs-fact.html">
+
+<dom-module id="fs-person-vitals">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      
+      paper-card {
+        width: 100%;
+      }
+      
+      .fact-container {
+        padding: 16px;
+      }
+      
+      .fact-container:not(:first-child) {
+        border-top: 1px solid #e0e0e0;
+      }
+      
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+    <paper-card>
+      <div class="fact-container">
+        <fs-fact 
+          id="birth" 
+          fact="{{birth}}" 
+          editable
+          save-url="[[_saveUrl]]"
+          hidden$="[[!_hasBirth]]"></fs-fact>
+        <paper-button hidden$="[[_hasBirth]]" on-tap="_addBirth">Add Birth</paper-button>
+      </div>
+      <div class="fact-container">
+        <fs-fact 
+          id="christening" 
+          fact="{{christening}}" 
+          editable 
+          save-url="[[_saveUrl]]" 
+          hidden$="[[!_hasChristening]]"></fs-fact>
+        <paper-button hidden$="[[_hasChristening]]" on-tap="_addChristening">Add Christening</paper-button>
+      </div>
+      <div class="fact-container">
+        <fs-fact 
+          id="death" 
+          fact="{{death}}" 
+          editable
+          save-url="[[_saveUrl]]"
+          hidden$="[[!_hasDeath]]"></fs-fact>
+        <paper-button hidden$="[[_hasDeath]]" on-tap="_addDeath">Add Death</paper-button>
+      </div>
+      <div class="fact-container">
+        <fs-fact 
+          id="burial" 
+          fact="{{burial}}" 
+          editable
+          save-url="[[_saveUrl]]"
+          hidden$="[[!_hasBurial]]"></fs-fact>
+        <paper-button hidden$="[[_hasBurial]]" on-tap="_addBurial">Add Burial</paper-button>
+      </div>
+    </paper-card>
+  </template>
+
+  <script>
+    /**
+     * `fs-person-vitals`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FSPersonVitals extends FSPersonMixin(Polymer.Element) {
+      static get is() { return 'fs-person-vitals'; }
+      static get properties() {
+        return {
+          birth: Object,
+          christening: Object,
+          death: Object,
+          burial: Object,
+          _saveUrl: String,
+          _hasBirth: {
+            type: Boolean,
+            value: false,
+            computed: '_hasVital(birth)'
+          },
+          _hasChristening: {
+            type: Boolean,
+            value: false,
+            computed: '_hasVital(christening)'
+          },
+          _hasDeath: {
+            type: Boolean,
+            value: false,
+            computed: '_hasVital(death)'
+          },
+          _hasBurial: {
+            type: Boolean,
+            value: false,
+            computed: '_hasVital(burial)'
+          }
+        };
+      }
+      
+      _personChanged() {
+        if(this.person && this.person.facts){
+          const newFacts = this.person.facts.reduce(function(accumulator, fact){
+            // Here we're okay with overriding duplicates because we're only
+            // interested in vitals and those are guaranteed to not have duplicates
+            accumulator[fact.type] = fact;
+            return accumulator;
+          }, {});
+          this.birth = newFacts['http://gedcomx.org/Birth'];
+          this.christening = newFacts['http://gedcomx.org/Christening'];
+          this.death = newFacts['http://gedcomx.org/Death'];
+          this.burial = newFacts['http://gedcomx.org/Burial'];
+          this._saveUrl = this.person.links.person.href;
+        }
+      }
+      
+      _hasVital(vital) {
+        return !!vital;
+      }
+      
+      _addBirth() {
+        this.birth = {type:'http://gedcomx.org/Birth'};
+        this.$.birth.edit = true;
+      }
+      
+      _addChristening() {
+        this.christening = {type:'http://gedcomx.org/Christening'};
+        this.$.christening.edit = true;
+      }
+      
+      _addDeath() {
+        this.death = {type:'http://gedcomx.org/Death'};
+        this.$.death.edit = true;
+      }
+      
+      _addBurial() {
+        this.burial = {type:'http://gedcomx.org/Burial'};
+        this.$.burial.edit = true;
+      }
+    }
+
+    window.customElements.define(FSPersonVitals.is, FSPersonVitals);
+  </script>
+</dom-module>

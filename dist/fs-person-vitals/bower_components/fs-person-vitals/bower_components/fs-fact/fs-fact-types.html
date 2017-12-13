@@ -1,0 +1,459 @@
+<script>
+  (() => {
+    const types = [
+      {
+        type: 'http://gedcomx.org/BarMitzvah',
+        name: 'Bar Mitzvah',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/BatMitzvah',
+        name: 'Bat Mitzvah',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Birth',
+        name: 'Birth',
+        entity: 'person',
+        date: true,
+        place: true,
+        vital: true,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Burial',
+        name: 'Burial',
+        entity: 'person',
+        date: true,
+        place: true,
+        vital: true,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Caste',
+        name: 'Caste',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Christening',
+        name: 'Christening',
+        entity: 'person',
+        date: true,
+        place: true,
+        vital: true,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Clan',
+        name: 'Clan',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Cremation',
+        name: 'Cremation',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Death',
+        name: 'Death',
+        entity: 'person',
+        date: true,
+        place: true,
+        vital: true,
+        value: false,
+        multiple: false,
+        deletable: false
+      },
+      {
+        type: 'http://gedcomx.org/Ethnicity',
+        name: 'Ethnicity',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/MilitaryService',
+        name: 'Military Service',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/NationalId',
+        name: 'National Id',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Nationality',
+        name: 'Nationality',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: true,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Naturalization',
+        name: 'Naturalization',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Occupation',
+        name: 'Occupation',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/PhysicalDescription',
+        name: 'Physical Description',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: true,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Religion',
+        name: 'Religion',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Residence',
+        name: 'Residence',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Stillbirth',
+        name: 'Stillbirth',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://familysearch.org/v1/Affiliation',
+        name: 'Affiliation',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://familysearch.org/v1/DiedBeforeEight',
+        name: 'Died Before Eight',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://familysearch.org/v1/TitleOfNobility',
+        name: 'Title Of Nobility',
+        entity: 'person',
+        date: true,
+        place: true,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://familysearch.org/v1/TribeName',
+        name: 'Tribe Name',
+        entity: 'person',
+        date: false,
+        place: false,
+        value: true,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Annulment',
+        name: 'Annulment',
+        entity: 'couple',
+        date: true,
+        place: true,
+        value: false,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/CommonLawMarriage',
+        name: 'Common Law Marriage',
+        entity: 'couple',
+        date: true,
+        place: true,
+        value: false,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Divorce',
+        name: 'Divorce',
+        entity: 'couple',
+        date: true,
+        place: true,
+        value: false,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/Marriage',
+        name: 'Marriage',
+        entity: 'couple',
+        date: true,
+        place: true,
+        value: false,
+        multiple: true,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/AdoptiveParent',
+        name: 'Adoptive Parent',
+        entity: 'capr',
+        date: false,
+        place: false,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/BiologicalParent',
+        name: 'Biological Parent',
+        entity: 'capr',
+        date: false,
+        place: false,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/FosterParent',
+        name: 'Foster Parent',
+        entity: 'capr',
+        date: false,
+        place: false,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/GuardianParent',
+        name: 'Guardian Parent',
+        entity: 'capr',
+        date: false,
+        place: false,
+        value: false,
+        multiple: false,
+        deletable: true
+      },
+      {
+        type: 'http://gedcomx.org/StepParent',
+        name: 'Step Parent',
+        entity: 'capr',
+        date: false,
+        place: false,
+        value: false,
+        multiple: false,
+        deletable: true
+      }
+    ];
+    
+    /**
+     * Static class exposed for querying the fact types
+     */
+    this.FsFactTypes = class FsFactTypes {
+      
+      /**
+       * Get a list of all fact types
+       * 
+       * @return {Array}
+       */
+      static types() {
+        return types;
+      }
+      
+      /**
+       * Get one type
+       * 
+       * @param {String} type
+       * @return {Object}
+       */
+      static type(type) {
+        this._buildTypeIndex();
+        return this._typeIndex[type];
+      }
+      
+      /**
+       * Whether the type is custom
+       * 
+       * @param {String} type
+       * @return {Boolean}
+       */
+      static isCustom(type) {
+        return this.type(type) === undefined;
+      }
+      
+      /**
+       * Get the display name for a type
+       * 
+       * @param {String} type
+       * @return {String}
+       */
+      static displayName(type) {
+        if(this.isCustom(type)) {
+          return type;
+        } else {
+          return this.type(type).name;
+        }
+      }
+      
+      /**
+       * Check whether a given type supports the value property
+       * 
+       * @param {String} type
+       * @return {Boolean}
+       */
+      static supportsValue(type) {
+        return this.isCustom(type) || this.type(type).value;
+      }
+      
+      /**
+       * Check whether a given type supports the date property
+       * 
+       * @param {String} type
+       * @return {Boolean}
+       */
+      static supportsDate(type) {
+        return this.isCustom(type) || this.type(type).date;
+      }
+      
+      /**
+       * Check whether a given type supports the place property
+       * 
+       * @param {String} type
+       * @return {Boolean}
+       */
+      static supportsPlace(type) {
+        return this.isCustom(type) || this.type(type).place;
+      }
+      
+      /**
+       * Check whether a given type is a vital type
+       *
+       * @param {String} type
+       * @return {Boolean}
+       */
+      static isVital(type) {
+        return !this.isCustom(type) && this.type(type).vital === true;
+      }
+      
+      /**
+       * Get a list of types matching the given entity type
+       * 
+       * @param {String} entity
+       * @return {Array}
+       */
+      static typesByEntity(entity) {
+        this._buildEntityIndex();
+        return this._entityIndex[entity];
+      }
+      
+      /**
+       * Build an index to the types by their type
+       */
+      static _buildTypeIndex() {
+        if(!this._typeIndex) {
+          this._typeIndex = types.reduce((index, type) => {
+            index[type.type] = type;
+            return index;
+          }, {});
+        }
+      }
+      
+      /**
+       * Build an index to the types grouped by entity
+       */
+      static _buildEntityIndex() {
+        if(!this._entityIndex) {
+          this._entityIndex = types.reduce((index, type) => {
+            index[type.entity].push(type);
+            return index;
+          }, {
+            person: [],
+            couple: [],
+            capr: []
+          });
+        }
+      }
+    };
+  })();
+</script>

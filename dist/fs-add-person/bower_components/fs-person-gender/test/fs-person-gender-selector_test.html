@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-person-gender test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-person-gender-selector.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <fs-person-gender-selector></fs-person-gender-selector>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="gender">
+      <template>
+        <fs-person-gender-selector gender="http://gedcomx.org/Female"></fs-person-gender-selector>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="change-gender">
+      <template>
+        <fs-person-gender-selector gender="http://gedcomx.org/Female"></fs-person-gender-selector>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('fs-person-gender', function() {
+
+        test('instantiating the element with default properties works', function() {
+          var element = fixture('basic');
+          assert.equal(element.gender, undefined);
+        });
+
+        test('setting a property on the element works', function() {
+          var element = fixture('gender');
+          assert.equal(element.gender, 'http://gedcomx.org/Female');
+        });
+        
+        test('changing the gender', function(done){
+          var element = fixture('change-gender');
+          assert.equal(element.gender, 'http://gedcomx.org/Female');
+          element.addEventListener('gender-changed', function(e){
+            assert.equal(element.gender, 'http://gedcomx.org/Male');
+            done();
+          });
+          // If we don't use setTimeout then the test won't pass. For some reason
+          // the change event isn't triggered and the UI shows that both Male
+          // and Female are selected. Perhaps the paper-radio-group needs time
+          // to finish setting up. Don't know.
+          setTimeout(function(){
+            element.shadowRoot.querySelector('paper-radio-button').click();
+          });
+        });
+
+      });
+    </script>
+
+  </body>
+</html>

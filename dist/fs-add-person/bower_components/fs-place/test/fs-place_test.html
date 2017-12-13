@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-place test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-place.html">
+  </head>
+  <body>
+
+    <test-fixture id="empty">
+      <template>
+        <fs-place></fs-place>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="display-place">
+      <template>
+        <fs-place></fs-place>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="empty-edit">
+      <template>
+        <fs-place edit></fs-place>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="edit-prefilled">
+      <template>
+        <fs-place edit></fs-place>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="clear">
+      <template>
+        <fs-place edit place='{"original":"Nova Scotia"}'></fs-place>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('fs-place', function() {
+
+        test('empty', function() {
+          var element = fixture('empty');
+          assert.equal(element.shadowRoot.querySelector('#place').textContent.trim(), '');
+        });
+        
+        test('display place', function() {
+          var element = fixture('display-place');
+          element.place = {
+            original: 'Nova Scotia'
+          };
+          assert.equal(element.shadowRoot.querySelector('#place').textContent, 'Nova Scotia');
+        });
+        
+        test('empty edit', function(done) {
+          var element = fixture('empty-edit');
+          setTimeout(() => {
+            assert(!!element.shadowRoot.querySelector('#autocomplete'));
+            assert(element.place === undefined);
+            done();
+          });
+        });
+        
+        test('edit prefilled', function(done) {
+          var element = fixture('empty-edit');
+          element.place = {
+            original: 'Nova Scotia'
+          };
+          assert.equal(element.shadowRoot.querySelector('#place').textContent, 'Nova Scotia');
+          setTimeout(() => {
+            assert(!!element.shadowRoot.querySelector('#autocomplete'));
+            assert(!!element.place);
+            done();
+          });
+        });
+        
+        test('clear', function(done){
+          var element = fixture('clear');
+          assert.equal(element.place.original, "Nova Scotia");
+          setTimeout(function(){
+            element.shadowRoot.querySelector('#autocomplete').clear();
+            assert.equal(element.place, undefined);
+            done();
+          });
+        });
+
+      });
+    </script>
+
+  </body>
+</html>

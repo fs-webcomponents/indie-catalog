@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-attribution demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../fs-attribution.html">
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Empty fs-attribution demo</h3>
+      <demo-snippet>
+        <template>
+          <fs-attribution></fs-attribution>
+        </template>
+      </demo-snippet>
+      <h3>Basic fs-attribution demo</h3>
+      <demo-snippet>
+        <template>
+          <fs-attribution id="basic"></fs-attribution>
+          <script>
+            document.getElementById('basic').attribution = {
+              "contributor" : {
+                "resource" : "https://integration.familysearch.org/platform/users/agents/MMJF-TLW",
+                "resourceId" : "MMJF-TLW"
+              },
+              "changeMessage": "Because because",
+              "modified" : 1408134300475
+            };
+          </script>
+        </template>
+      </demo-snippet>
+      <h3>Edit fs-attribution demo</h3>
+      <demo-snippet>
+        <template>
+          <fs-attribution id="edit" edit></fs-attribution>
+          <script>
+            document.getElementById('edit').attribution = {
+              "contributor" : {
+                "resource" : "https://integration.familysearch.org/platform/users/agents/MMJF-TLW",
+                "resourceId" : "MMJF-TLW"
+              },
+              "changeMessage": "Because because",
+              "modified" : 1408134300475
+            };
+          </script>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

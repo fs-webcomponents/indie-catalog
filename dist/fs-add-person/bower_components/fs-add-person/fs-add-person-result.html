@@ -1,0 +1,211 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../paper-button/paper-button.html">
+
+<dom-module id="fs-add-person-result">
+  <template>
+    <style>
+      :host {
+        display: flex;
+      }
+      
+      .col {
+        padding: 16px;
+      }
+      
+      .name-col {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: left;
+      }
+      
+      #buttons-slot {
+        margin-top: 8px;
+      }
+      
+      .vitals-col, .relatives-col {
+        flex: 3;
+        border-left: 1px solid #e0e0e0;
+        min-width: 0;
+      }
+      
+      .name {
+        font-weight: bold;
+      }
+      
+      .label {
+        text-transform: uppercase;
+        color: #666;
+        font-size: .9em;
+      }
+      
+      .vital:not(:first-child), .relative:not(:first-child) {
+        margin-top: 8px;
+      }
+      
+      .place {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+    <div class="col name-col">
+      <div>
+        <div class="name">{{person.display.name}}</div>
+        <div class="id">{{person.id}}</div>
+      </div>
+      <div id="buttons-slot">
+        <slot name="buttons"></slot>
+      </div>
+    </div>
+    <div class="col vitals-col">
+      <div class="vital" hidden="[[!_displayBirth(person)]]">
+        <div class="label">Birth</div>
+        <div class="date">{{_birthDateText(person)}}</div>
+        <div class="place" title="{{person.display.birthPlace}}">{{_birthPlaceText(person)}}</div>
+      </div>
+      <div class="vital">
+        <div class="label" hidden="[[!_displayDeath(person)]]">Death</div>
+        <div class="date">{{_deathDateText(person)}}</div>
+        <div class="place" title="{{person.display.birthPlace}}">{{_deathPlaceText(person)}}</div>
+      </div>
+    </div>
+    <div class="col relatives-col">
+      <div class="relative" hidden="[[!_displaySpouse]]">
+        <div class="label">Spouse</div>
+        <div class="name">{{spouse.display.name}}</div>
+        <div class="id">{{spouse.id}}</div>
+      </div>
+      <div class="relative" hidden="[[!_displayFather]]">
+        <div class="label">Father</div>
+        <div class="name">{{father.display.name}}</div>
+        <div class="id">{{father.id}}</div>
+      </div>
+      <div class="relative" hidden="[[!_displayMother]]">
+        <div class="label">Mother</div>
+        <div class="name">{{mother.display.name}}</div>
+        <div class="id">{{mother.id}}</div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `fs-add-person-result`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsAddPersonResult extends Polymer.Element {
+      static get is() { return 'fs-add-person-result'; }
+      static get properties() {
+        return {
+          gedcomx: {
+            type: Object,
+            observer: '_calculatePersons'
+          },
+          
+          person: Object,
+          spouse: Object,
+          father: Object,
+          mother: Object,
+          
+          _displaySpouse: {
+            type: Boolean,
+            value: false,
+            computed: '_displayPerson(spouse)'
+          },
+          _displayFather: {
+            type: Boolean,
+            value: false,
+            computed: '_displayPerson(father)'
+          },
+          _displayMother: {
+            type: Boolean,
+            value: false,
+            computed: '_displayPerson(mother)'
+          }
+        };
+      }
+      
+      _calculatePersons(gedcomx) {
+        this.person = undefined;
+        this.spouse = undefined;
+        this.father = undefined;
+        this.mother = undefined;
+        
+        if(gedcomx && Array.isArray(gedcomx.persons) && gedcomx.persons.length > 0) {
+          
+          // Calculate primary person
+          const person = gedcomx.persons[0];
+          const personId = person.id;
+          this.person = person;
+          
+          if(Array.isArray(gedcomx.relationships) && gedcomx.relationships.length > 0) {
+          
+            // Calculate spouse
+            const spouseRel = gedcomx.relationships.find((rel) => {
+              return rel.type === 'http://gedcomx.org/Couple';
+            });
+            if(spouseRel) {
+              const spouseId = spouseRel.person1.resourceId === personId ? spouseRel.person2.resourceId : spouseRel.person1.resourceId;
+              this.spouse = gedcomx.persons.find((person) => person.id === spouseId);
+            }
+            
+            // Calculate parents
+            const parents = gedcomx.relationships.filter((rel) => {
+              return rel.type === 'http://gedcomx.org/ParentChild' && rel.person2.resourceId === personId;
+            }).map((rel) => {
+              return gedcomx.persons.find((person) => {
+                return person.id === rel.person1.resourceId;
+              });
+            });
+            this.father = parents.find((person) => person.gender.type === 'http://gedcomx.org/Male');
+            this.mother = parents.find((person) => person.gender.type === 'http://gedcomx.org/Female');
+          }
+        }
+      }
+      
+      _birthDateText(person) {
+        if(person && person.display) {
+          return person.display.birthDate;
+        }
+      }
+      
+      _birthPlaceText(person) {
+        if(person && person.display) {
+          return person.display.birthPlace;
+        }
+      }
+      
+      _deathDateText(person) {
+        if(person && person.display) {
+          return person.display.deathDate;
+        }
+      }
+      
+      _deathPlaceText(person) {
+        if(person && person.display) {
+          return person.display.deathPlace;
+        }
+      }
+      
+      _displayBirth(person) {
+        return person && person.display && (person.display.birthDate || person.display.birthPlace);
+      }
+      
+      _displayDeath(person) {
+        return person && person.display && (person.display.deathDate || person.display.deathPlace);
+      }
+      
+      _displayPerson(person) {
+        return !!person;
+      }
+    }
+
+    window.customElements.define(FsAddPersonResult.is, FsAddPersonResult);
+  </script>
+</dom-module>

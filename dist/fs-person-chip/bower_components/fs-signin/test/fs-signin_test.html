@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-signin.html">
+  </head>
+  <body>
+
+    <test-fixture id="default">
+      <template>
+        <fs-signin></fs-signin>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="authenticated">
+      <template>
+        <div>
+          <fs-client name="authenticated" access-token="token"></fs-client>
+          <fs-signin client-name="authenticated"></fs-signin>
+        </div>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('<fs-client>', function(){
+        
+        test('basic setup', function(){
+          var element = fixture('default');
+          expect(element.signedIn).to.be.false;
+        });
+        
+        test('named clients', function(){
+          var element = fixture('authenticated').querySelector('fs-signin');
+          expect(element.signedIn).to.be.true;
+        });
+        
+      });
+    </script>
+
+  </body>
+</html>

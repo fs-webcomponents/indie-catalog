@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-add-person demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../fs-add-person.html">
+    <link rel="import" href="../../fs-client/fs-client.html">
+    <link rel="import" href="../../fs-signin/fs-signin.html">
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <fs-client 
+        id="client" 
+        app-key="a02j00000099Mc2AAE" 
+        redirect-uri="." 
+        save-access-token 
+        exchange-code
+        token-cookie-path="/"
+        redirect-after-sign-in="."></fs-client>
+      <fs-signin></fs-signin>
+      <h3>Basic fs-add-person demo</h3>
+      <demo-snippet>
+        <template>
+          <paper-button raised onclick="basic.open()">Open</paper-button>
+          <fs-add-person id="basic"></fs-add-person>
+        </template>
+      </demo-snippet>
+      <h3>Pre-fill some of the data. You shouldn't normally need to do this but it makes testing easier</h3>
+      <demo-snippet>
+        <template>
+          <paper-button raised onclick="prefill.open()">Open</paper-button>
+          <fs-add-person id="prefill" first-names="Joey" gender="http://gedcomx.org/Male" living="false"></fs-add-person>
+        </template>
+      </demo-snippet>
+      <h3>Add a spouse</h3>
+      <demo-snippet>
+        <template>
+          <paper-button raised onclick="spouse.open()">Open</paper-button>
+          <fs-add-person id="spouse" spouse-id="L5XY-1F3" gender="http://gedcomx.org/Female"></fs-add-person>
+        </template>
+      </demo-snippet>
+      <h3>Add a child</h3>
+      <demo-snippet>
+        <template>
+          <paper-button raised onclick="child.open()">Open</paper-button>
+          <fs-add-person id="child" father-id="L5XY-1F3" mother-id="L5XY-BBW"></fs-add-person>
+        </template>
+      </demo-snippet>
+      <h3>Add a parent in a new child and parents relationship</h3>
+      <demo-snippet>
+        <template>
+          <paper-button raised onclick="newRel.open()">Open</paper-button>
+          <fs-add-person id="newRel" child-id="L5XB-MSY"></fs-add-person>
+        </template>
+      </demo-snippet>
+      <h3>Add a parent to an existing child and parents relationship</h3>
+      <demo-snippet>
+        <template>
+          <paper-button raised onclick="updateRel.open()">Open</paper-button>
+          <fs-add-person id="updateRel" capr-ids='["MYKL-74G"]'></fs-add-person>
+        </template>
+      </demo-snippet>
+    </div>
+    <script>
+      document.body.addEventListener('person-added', function(e){
+        if(e.detail.personId) {
+          console.log(`Added person ${e.detail.personId}`);
+        }
+      });
+    </script>
+  </body>
+</html>

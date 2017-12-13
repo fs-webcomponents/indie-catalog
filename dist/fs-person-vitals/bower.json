@@ -1,0 +1,22 @@
+{
+  "name": "fs-person-vitals",
+  "main": "fs-person-vitals.html",
+  "version": "4.0.0",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-fact": "fs-webcomponents/fs-fact#^4.0.0",
+    "fs-person-mixin": "fs-webcomponents/fs-person-mixin#^4.0.0",
+    "paper-card": "PolymerElements/paper-card#^2.0.0",
+    "paper-button": "PolymerElements/paper-button#^2.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
+    "fs-signin": "fs-webcomponents/fs-signin#^4.0.0",
+    "fs-client": "fs-webcomponents/fs-client#^4.1.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  }
+}

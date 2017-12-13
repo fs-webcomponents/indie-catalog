@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>fs-person-chip Demo</title>
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="../../fs-client/fs-client.html">
+    <link rel="import" href="../../fs-signin/fs-signin.html">
+    <link rel="import" href="../fs-person-chip.html">
+    <link rel="import" href="../../paper-card/paper-card.html">
+    <link rel="import" href="../../paper-styles/demo-pages.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+      </style>
+    </custom-style>
+    <custom-style>
+      <style is="custom-style">
+        paper-card {
+          width: 400px;
+        }
+        
+        paper-card fs-person-chip:not(:first-child) {
+          margin-top: 16px;
+        }
+      </style>
+    </custom-style>
+  </head>
+  <body unresolved>
+    <div class="vertical-section-container centered">
+      <fs-client 
+        app-key="a02j00000099Mc2AAE" 
+        redirect-uri="." 
+        save-access-token 
+        exchange-code 
+        token-cookie-path="/"
+        redirect-after-sign-in="."></fs-client>
+      <fs-signin></fs-signin>
+      
+      <h3>List fs-person-chips in a card</h3>
+      <demo-snippet>
+        <template>
+          <paper-card>
+            <div class="card-content">
+              <fs-person-chip person-id="KW7H-D56"></fs-person-chip>
+              <fs-person-chip person-id="KWCF-GKR"></fs-person-chip> 
+              <fs-person-chip person-id="KWCF-GK5"></fs-person-chip>
+            </div>
+          </paper-card>
+        </template>
+      </demo-snippet>
+      
+      <h3>Customize contents of detail area</h3>
+      <demo-snippet>
+        <template>
+          <fs-person-chip>
+            <paper-button no-ink>+ Add Spouse</paper-button>
+          </fs-person-chip>
+        </template>
+      </demo-snippet>
+      
+  </body>
+</html>

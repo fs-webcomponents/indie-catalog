@@ -1,0 +1,956 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-person-gender/fs-person-gender-selector.html">
+<link rel="import" href="../fs-date/fs-date.html">
+<link rel="import" href="../fs-place/fs-place.html">
+<link rel="import" href="fs-add-person-result.html">
+
+<dom-module id="fs-add-person">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      
+      .row {
+        display: flex;
+      }
+      
+      .name > paper-input {
+        width: 100%;
+      }
+      
+      .name > paper-input:last-child {
+        margin-left: 16px;
+      }
+      
+      .gender-living > div {
+        flex: 1;
+      }
+      
+      .gender paper-radio-button {
+        display: block;
+      }
+      
+      .vital fs-date {
+        flex: 1;
+      }
+      
+      .vital fs-place {
+        flex: 2;
+        margin-left: 16px;
+      }
+      
+      #next-btn:not([disabled]),
+      .result-button {
+        background-color: var(--paper-blue-500);
+        color: #fff;
+      }
+      
+      #loader {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(230, 230, 230, .6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+      }
+      
+      paper-dialog-scrollable {
+        width: 800px;
+        height: 250px;
+        margin: 0 -24px;
+      }
+      
+      fs-add-person-result {
+        border-width: 1px 1px 0 1px;
+        border-style: solid;
+        border-color: #e0e0e0;
+      }
+      
+      fs-add-person-result:last-of-type {
+        border-bottom: 1px solid #e0e0e0;
+      }
+      
+      .no-results-message {
+        color: #666;
+        margin: 16px 0;
+      }
+      
+      .label {
+        font-weight: bold;
+      }
+      
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+    <paper-dialog id="dialog" opened="{{opened}}" modal>
+      <h2>Add A Person</h2>
+      <div hidden="[[!_showDataStep(_step)]]">
+        <div class="row name">
+          <paper-input label="First Names" value="{{firstNames}}"></paper-input>
+          <paper-input label="Last Names" value="{{lastNames}}"></paper-input>
+        </div>
+        <div class="row gender-living">
+          <div class="gender">
+            <div>Gender</div>
+            <fs-person-gender-selector disabled="{{_disableGender(gender, disableGender)}}" gender="{{gender}}"></fs-person-gender-selector>
+          </div>
+          <div>
+            <div>Living</div>
+            <paper-radio-group selected="{{_calculateLivingSelection(living)}}" on-iron-select="_livingSelection">
+              <paper-radio-button name="living">Living</paper-radio-button>
+              <paper-radio-button name="deceased">Deceased</paper-radio-button>
+            </paper-radio-group>
+          </div>
+        </div>
+        <div class="row vital">
+          <fs-date edit date="{{birthDate}}" label="Birth Date"></fs-date>
+          <fs-place edit place="{{birthPlace}}" label="Birth Place"></fs-place>
+        </div>
+        <div class="row vital">
+          <fs-date edit disabled="{{_deathDisabled}}" date="{{deathDate}}" label="Death Date"></fs-date>
+          <fs-place edit disabled="{{_deathDisabled}}" place="{{deathPlace}}" label="Death Place"></fs-place>
+        </div>
+      </div>
+      <div hidden="[[!_showResultsStep(_step)]]">
+        <h3>You Entered</h3>
+        <fs-add-person-result gedcomx="{{_newGedcomx}}">
+          <paper-button class="result-button" slot="buttons" on-tap="_createNewPerson">Create New</paper-button>
+        </fs-add-person-result>
+        <div hidden="{{!_hasSearchResults(_searchResults)}}">
+          <h3>Possible Matches</h3>
+          <paper-dialog-scrollable id="results-scroll">
+            <template is="dom-repeat" items="{{_searchResults}}">
+              <fs-add-person-result gedcomx="{{item.content.gedcomx}}">
+                <paper-button class="result-button" slot="buttons" on-tap="_selectSearchResult">Add Person</paper-button>
+              </fs-add-person-result>
+            </template>
+          </paper-dialog-scrollable>
+        </div>
+        <div class="no-results-message" hidden="{{_hasSearchResults(_searchResults)}}">
+          <p class="label">No Matches Found</p>
+          <p>We could not find any possible matches. You can add this new person to the Family Tree.</p>
+        </div>
+      </div>
+      <div class="buttons">
+        <paper-button on-tap="_cancel">Cancel</paper-button>
+        <paper-button id="next-btn" raised disabled="[[!_searchReady]]" hidden="[[!_showDataStep(_step)]]" on-tap="_search">Next</paper-button>
+        <paper-button raised hidden="[[!_showResultsStep(_step)]]" on-tap="_refine">Refine Search</paper-button>
+      </div>
+      <div id="loader" hidden="[[!_loading]]">
+        <paper-spinner-lite active class="blue"></paper-spinner-lite>
+      </div>
+    </paper-dialog>
+    <fs-request 
+      id="searchRequest"
+      client-name="[[clientName]]"
+      loading="{{_loading}}"
+      headers='{"Accept":"application/x-gedcomx-atom+json"}'
+      on-response="_handleSearchResponse"></fs-request>
+    <fs-request
+      id="createPersonRequest"
+      client-name="[[clientName]]"
+      loading="{{_loading}}"
+      method="POST"
+      url="/platform/tree/persons"
+      on-response="_handleCreatePersonResponse"></fs-request>
+  </template>
+
+  <script>
+    /**
+     * `fs-add-person` is a component that can be used for adding new persons to
+     * the tree and for creating relationships between existing persons. It's a
+     * modal dialog that starts by collecting basic information on a person
+     * (name, gender, birth, death) and then searches the tree for possible
+     * matches. From there the user can choose an existing person or create a
+     * new person with the data they entered. We don't ask for all possible
+     * data on a person; additional data can be added after the person is created.
+     * 
+     * Relationships can be created so that the new person is attached to the
+     * tree or so that a new relationship is created between existing persons.
+     * 
+     * A `person-added` event is emitted when the process is complete. The detail
+     * property of the event object will have a `personId` property that specifies
+     * ID of new or selected person.
+     * 
+     * ### Add An Unconnected Person
+     * 
+     *     <fs-add-person></fs-add-person>
+     * 
+     * ### Add A Spouse
+     * 
+     * Set the `spouseId` property to create a couple relationship between the
+     * new person and the person specified by `spouseId`.
+     * 
+     *     <fs-add-person spouse-id="KWMX-123"></fs-add-person>
+     * 
+     * ### Add A Child
+     * 
+     * Set the `fatherId` or `motherId` property (or both) to create a child 
+     * and parents relationship with the selected person as the child.
+     * 
+     *     <fs-add-person father-id="PPPP-PPP" mother-id="TRJK-NM9"></fs-add-person>
+     * 
+     * ### Add A Parent - New CAPR
+     * 
+     * Set the `childId` property to create a child and parents relationship
+     * with the selected person as a parent.
+     * 
+     *     <fs-add-person child-id="STGH-123"></fs-add-person>
+     * 
+     * ### Add A Parent - Update CAPRs
+     * 
+     * Set the `caprIds` property to update existing child and parents
+     * relationships with the selected person as a parent.
+     * 
+     *     <fs-add-person capr-ids="MWFL-456,MWTT-8XZ"></fs-add-person>
+     * 
+     * ### Add A Parent - Update CAPRs And Create A Couple
+     * 
+     * When using `caprIds` you may also provide a `fatherId` or `motherId`
+     * to signify that you want to create a couple relationship between that
+     * person and the selected person.
+     * 
+     *     <fs-add-person capr-ids="MWFL-456,MWTT-8XZ" father-id="PFMT-Y4G"></fs-add-person>
+     *
+     * ### Add A Parent - Update CAPRs Without A CAPR ID
+     * 
+     * If you have a `childId` and a `motherId` or `fatherId` but not a `caprId`
+     * then you may provide those and the element will calculate the matching
+     * `caprId`. A couple relationship will be created between the `motherId`
+     * and `fatherId` if both are specified.
+     * 
+     *     <fs-add-person child-id="STGH-123" father-id="PPPP-PPP" mother-id="TRJK-NM9">
+     * 
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsAddPerson extends FSApiAwareMixin(Polymer.Element) {
+      
+      static get is() { return 'fs-add-person'; }
+      
+      /**
+       * Fired when the process of adding or selecting a person and creating
+       * any necessary relationships is complete.
+       *
+       * @event person-added
+       * @param {String} personId ID of the person that was created or selected.
+       */
+      
+      static get properties() {
+        return {
+          
+          /** Whether the dialog is opened **/
+          opened: {
+            type: Boolean,
+            value: false
+          },
+          
+          /** 
+           * Do these need to be public? Do we want to allow these value to
+           * be set and read?
+           */
+          firstNames: String,
+          lastNames: String,
+          gender: String,
+          living: Boolean,
+          birthDate: Object,
+          birthPlace: Object,
+          deathDate: Object,
+          deathPlace: Object,
+          
+          /** 
+           * The ID of the existing spouse when wanting to add a spouse
+           */
+          spouseId: String,
+          
+          /**
+           * The ID of the existing father when wanting to add a child
+           */
+          fatherId: String,
+          
+          /** 
+           * The ID of the existing mother when wanting to add a child
+           */
+          motherId: String,
+          
+          /**
+           * The ID of the existing child when wanting to add a parent
+           */
+          childId: String,
+          
+          /**
+           * List of existing child-and-parents relationship IDs, used when 
+           * adding a parent to an existing family
+           */
+          caprIds: Array,
+          
+          /**
+           * Disable the gender selection so that the user can't choose the
+           * gender. This is useful when adding a person to a couple because
+           * there is only one valid gender. I.e., if the wife is alredy known
+           * then the new person must be a male.
+           * 
+           * The gender selection will only be disabled if this property is set
+           * to true and a gender value is provided (gender is required and we 
+           * don't want to disable a required field unless we have a value).
+           */
+          disableGender: {
+            type: Boolean,
+            value: false
+          },
+          
+          /** Whether the search request is loading */
+          _loading: Boolean,
+          
+          /** Whether the death inputs should be disabled */
+          _deathDisabled: {
+            type: Boolean,
+            value: true,
+            computed: '_disableDeath(living)'
+          },
+          
+          /** Whether we have enough data to search for duplicates */
+          _searchReady: {
+            type: Boolean,
+            value: false,
+            computed: '_readyToSearch(firstNames, lastNames, gender, living)'
+          },
+          
+          /** Which step or page we are on */
+          _step: {
+            type: String,
+            value: 'data'
+          },
+          
+          /** List of search results (possible matches) */
+          _searchResults: {
+            type: Array,
+            value: function(){
+              return [];
+            }
+          },
+          
+          /** 
+           * Represents information about the new person. This is used both for
+           * display via fs-add-person-result and to send to the server when 
+           * creating the person.
+           */
+          _newGedcomx: Object
+        };
+      }
+      
+      ready() {
+        super.ready();
+        this.$['results-scroll'].dialogElement = this.$.dialog;
+      }
+      
+      /** Open the dialog */
+      open() {
+        this.opened = true;
+      }
+      
+      /** Close the dialog */
+      close() {
+        this.opened = false;
+      }
+      
+      /** Reset the element, removing any input values and relationship IDs **/
+      reset() {
+        this.opened = false;
+        // The gender selection needs to be enabled before we clear the gender,
+        // otherwise the inputs get into a bad state that.
+        // https://github.com/fs-webcomponents/fs-add-person/issues/6
+        this.disableGender = false;
+        this.firstNames = undefined;
+        this.lastNames = undefined;
+        this.gender = undefined;
+        this.living = undefined;
+        this.birthDate = undefined;
+        this.birthPlace = undefined;
+        this.deathDate = undefined;
+        this.deathPlace = undefined;
+        this.spouseId = undefined;
+        this.fatherId = undefined;
+        this.motherId = undefined;
+        this.childId = undefined;
+        this.caprIds = undefined;
+        this._step = 'data';
+        this._loading = false;
+        this._searchResults = [];
+      }
+      
+      /** Reset and close the dialog */
+      _cancel() {
+        this.reset();
+        this.close();
+      }
+      
+      /**
+       * Issue the API request for finding possible duplicates
+       */
+      _search() {
+        this.$.searchRequest.url = this._calculateSearchUrl();
+        this.$.searchRequest.generateRequest();
+        this._newGedcomx = this._calculateNewGedcomx();
+      }
+      
+      /**
+       * Return to the data step
+       */
+      _refine() {
+        this._step = 'data';
+      }
+      
+      /**
+       * Calculate whether the gender selection should be disabled.
+       */
+      _disableGender(gender, disableGender) {
+        return disableGender && !!gender;
+      }
+      
+      /**
+       * Calculate the URL for searching for matches. The matches query API
+       * requires a lot of data so if we don't have enough then we'll use the
+       * regular search API.
+       */
+      _calculateSearchUrl() {
+        const queryParts = {};
+        if(this.firstNames) {
+          queryParts.givenName = this.firstNames;
+        }
+        if(this.lastNames) {
+          queryParts.surname = this.lastNames;
+        }
+        switch(this.gender) {
+          case 'http://gedcomx.org/Male':
+            queryParts.gender = 'male';
+            break;
+          case 'http://gedcomx.org/Female':
+            queryParts.gender = 'female';
+            break;
+        }
+        if(this.birthDate) {
+          queryParts.birthDate = this.birthDate.original;
+        }
+        if(this.birthPlace) {
+          queryParts.birthPlace = this.birthPlace.original;
+        }
+        if(this.deathDate) {
+          queryParts.deathDate = this.deathDate.original;
+        }
+        if(this.deathPlace) {
+          queryParts.deathPlace = this.deathPlace.original;
+        }
+        const query = Object.keys(queryParts)
+          .map((key) => `${key}:"${queryParts[key]}"~`)
+          .join(' ');
+        const match = this.firstNames && this.lastNames && this.gender && this.living !== undefined
+          && this.birthDate && this.deathDate && this.deathPlace;
+        return `/platform/tree/${match ? 'match' : 'search'}?q=${query}`;
+      }
+      
+      _handleSearchResponse(e) {
+        const response = e.detail.response;
+        if(response.data && response.data) {
+          this._searchResults = response.data.entries;
+        } else {
+          this._searchResults = [];
+        }
+        this._step = 'results';
+      }
+      
+      _hasSearchResults() {
+        return Array.isArray(this._searchResults) && this._searchResults.length > 0;
+      }
+      
+      _calculateLivingSelection(living) {
+        if(living === true) {
+          return 'living';
+        }
+        if(living === false) {
+          return 'deceased';
+        }
+      }
+      
+      /**
+       * Generate a gedcomx object reprsenting the new person
+       */
+      _calculateNewGedcomx() {
+        const person = {
+          living: this.living,
+          facts: [],
+          display: {}
+        };
+        
+        // Name
+        const nameParts = [];
+        if(this.firstNames) {
+          nameParts.push({
+            type: 'http://gedcomx.org/Given',
+            value: this.firstNames
+          });
+        }
+        if(this.lastNames) {
+          nameParts.push({
+            type: 'http://gedcomx.org/Surname',
+            value: this.lastNames
+          });
+        }
+        person.names = [{
+          preferred: true,
+          nameForms: [{
+            parts: nameParts
+          }]
+        }];
+        person.display.name = nameParts.map(p => p.value).join(' ');
+        
+        // Gender
+        person.gender = { type: this.gender };
+        
+        // Birth
+        if(this.birthDate || this.birthPlace) {
+          const birth = {
+            type: 'http://gedcomx.org/Birth'
+          };
+          if(this.birthDate) {
+            birth.date = this.birthDate;
+            person.display.birthDate = this.birthDate.original;
+          }
+          if(this.birthPlace) {
+            birth.place = this.birthPlace;
+            person.display.birthPlace = this.birthPlace.original;
+          }
+          person.facts.push(birth);
+        }
+        
+        // Death
+        if(this.deathDate || this.deathPlace) {
+          const death = {
+            type: 'http://gedcomx.org/Death'
+          };
+          if(this.deathDate) {
+            death.date = this.deathDate;
+            person.display.deathDate = this.deathDate.original;
+          }
+          if(this.deathPlace) {
+            death.place = this.deathPlace;
+            person.display.deathPlace = this.deathPlace.original;
+          }
+          person.facts.push(death);
+        }
+        
+        return { persons: [ person ] };
+      }
+      
+      /**
+       * We use this event listener to calculate the value of living,
+       * as opposed to just doing two-way binding, because paper-radio-group
+       * doesn't support boolean values so we have to calculate the
+       * value ourself.
+       */
+      _livingSelection(e) {
+        this.living = e.detail.item.name === 'living';
+      }
+      
+      /**
+       * Disable death date and place when the person is not marked as deceased.
+       */
+      _disableDeath(living) {
+        return living !== false;
+      }
+      
+      /**
+       * Calculate whether we have enough information to proceed to the search step.
+       */
+      _readyToSearch(firstNames, lastNames, gender, living) {
+        return (firstNames || lastNames) && gender && living !== undefined;
+      }
+      
+      /**
+       * Whether to show the data step
+       */
+      _showDataStep(_step) {
+        return _step === 'data';
+      }
+      
+      /**
+       * Whether to show the results step
+       */
+      _showResultsStep(_step) {
+        return _step === 'results';
+      }
+      
+      /**
+       * Create the new person
+       */
+      _createNewPerson() {
+        const request = this.$.createPersonRequest;
+        request.body = this._newGedcomx;
+        request.generateRequest();
+      }
+      
+      /**
+       * Handle the response of a request to create a person
+       */
+      _handleCreatePersonResponse(e) {
+        const response = e.detail.response;
+        if(response.statusCode === 201) {
+          this._selectPerson(response.headers['x-entity-id'], this.gender);
+        }
+      }
+      
+      /**
+       * Select an existing person from a search result
+       */
+      _selectSearchResult(e) {
+        const person = e.model.item.content.gedcomx.persons[0];
+        this._selectPerson(person.id, person.gender.type);
+      }
+      
+      /**
+       * Set the selected person ID and initiate the process of creating relationships
+       */
+      _selectPerson(personId, gender) {
+        this._selectedId = personId;
+        this._selectedGender = gender;
+        this._createRelationships();
+      }
+      
+      /**
+       * Emit the completed event
+       */
+      _completed() {
+        this.dispatchEvent(new CustomEvent('person-added', {
+          detail: {
+            personId: this._selectedId
+          },
+          bubbles: true, 
+          composed: true
+        }));
+        this.reset();
+      }
+      
+      /**
+       * Create or update the relationships that the new or selected person will
+       * belong to. 
+       * 
+       * Most cases involve updating or creating just one relationship. However
+       * when adding a parent to an existing family we support updating all
+       * child-and-parents relationships in that family.
+       */
+      async _createRelationships() {
+        if(this._selectedId) {
+          
+          // Process the different use cases, create requests required to
+          // create or update the necessary relationships, then process the requests.
+          
+          this._loading = true;
+          let requests = [];
+          
+          // First we check if we need to calculate the caprId.
+          await this._calculateCaprIdWhenAddingParent();
+          
+          // These methods will only return a request if the requirements for
+          // their use case have been met. We have chosen to blindly push the 
+          // return value onto the and just filter out undefines values later.
+          // That is less logic than checking the return value of each method.
+          requests.push(this._createCoupleRelationshipWhenAddingSpouse());
+          requests.push(this._createCaprWhenAddingChild());
+          requests.push(this._createCaprWhenAddingParent());
+          
+          // Adding a new parent to an existing family. We update all specifed
+          // child-and-parents relationships and optionally create a couple relationship.
+          if(Array.isArray(this.caprIds)) {
+            requests.push(...this._updateCaprsWhenAddingParent());
+            requests.push(this._createCoupleWhenAddingParent());
+          }
+          
+          // Remove undefined entries in the requests list.
+          requests = requests.filter(r => !!r);
+          
+          // Process all requests. We must do it serially. If we attempt to
+          // process them in parallel then we'll likely trigger a 409 conflict
+          // error from the server by asking it to update the same person
+          // simultaneously (because person records are touched when relationships
+          // are modified).
+          this._serialRequests(requests).then(() => {
+            this._loading = false;
+            this._completed();
+          }, (err) => {
+            console.error(err);
+            this._loading = false;
+            this._completed();
+          });
+        }
+      }
+      
+      /**
+       * Create a request for creating a couple relationship.
+       * 
+       * @return {FSRequest}
+       */
+      _createCoupleRelationshipWhenAddingSpouse() {
+        if(this.spouseId) {
+          // FamilySearch demands that person 1 be a male and person 2 be a
+          // female. We know the gender of the selected person and we just have
+          // to assume that the spouse is the opposite gender.
+          return this._createRelationshipRequest({
+            relationships: [{
+              type: 'http://gedcomx.org/Couple',
+              person1: {
+                resource: this._selectedGender === 'http://gedcomx.org/Male' ? this._selectedId : this.spouseId
+              },
+              person2: {
+                resource: this._selectedGender === 'http://gedcomx.org/Female' ? this._selectedId : this.spouseId
+              }
+            }]
+          });
+        }
+      }
+      
+      /**
+       * Create a child and parents relationship when adding a new child.
+       * 
+       * @return {FSRequest}
+       */
+      _createCaprWhenAddingChild() {
+        if((this.fatherId || this.motherId) && !this.caprIds && !this.childId) {
+          const relationship = {
+            child: {
+              resource: this._selectedId
+            }
+          };
+          if(this.fatherId) {
+            relationship.father = {
+              resource: this.fatherId
+            };
+          }
+          if(this.motherId) {
+            relationship.mother = {
+              resource: this.motherId
+            };
+          }
+          return this._createRelationshipRequest({
+            childAndParentsRelationships: [relationship]
+          });
+        }
+      }
+      
+      /**
+       * Create a child and parents relationships when adding a parent.
+       * 
+       * @return {FSRequest}
+       */
+      _createCaprWhenAddingParent() {
+        if(this.childId && !(this.motherId || this.fatherId)) {
+          const relationship = {
+            child: {
+              resource: this.childId
+            }
+          };
+          if(this._selectedGender === 'http://gedcomx.org/Male') {
+            relationship.father = {
+              resource: this._selectedId
+            };
+          } else {
+            relationship.mother = {
+              resource: this._selectedId
+            };
+          }
+          return this._createRelationshipRequest({
+            childAndParentsRelationships: [relationship]
+          });
+        }
+      }
+      
+      /**
+       * Update child and parents relationships when adding a parent to a family.
+       * 
+       * @return {FSRequest[]}
+       */
+      _updateCaprsWhenAddingParent() {
+        const caprUpdate = {};
+        if(this._selectedGender === 'http://gedcomx.org/Male') {
+          caprUpdate.father = {
+            resource: this._selectedId
+          };
+        } else {
+          caprUpdate.mother = {
+            resource: this._selectedId
+          };
+        }
+        const body = {
+          childAndParentsRelationships: [caprUpdate]
+        };
+        return this.caprIds.map((caprId) => {
+          return this._createRelationshipRequest(body, `/platform/tree/child-and-parents-relationships/${caprId}`);
+        });
+      }
+      
+      /**
+       * Create a couple relationship when adding a parent to a family.
+       * 
+       * @return {FSRequest[]}
+       */
+      _createCoupleWhenAddingParent() {
+        const couple = {
+          type: 'http://gedcomx.org/Couple'
+        };
+        if(this._selectedGender === 'http://gedcomx.org/Female' && this.fatherId) {
+          couple.person1 = {
+            resource: this.fatherId
+          };
+          couple.person2 = {
+            resource: this._selectedId
+          };
+        }
+        else if(this._selectedGender === 'http://gedcomx.org/Male' && this.motherId) {
+          couple.person1 = {
+            resource: this._selectedId
+          };
+          couple.person2 = {
+            resource: this.motherId
+          };
+        }
+        if(couple.person1 && couple.person2) {
+          return this._createRelationshipRequest({
+            relationships: [couple]
+          });
+        }
+      }
+      
+      /**
+       * Construct a request for creating a relationship.
+       * 
+       * @param {Object} body
+       * @param {String=} url
+       * @return {FSRequest}
+       */
+      _createRelationshipRequest(body, url = '/platform/tree/relationships') {
+        const request = document.createElement('fs-request');
+        request.url = url;
+        request.method = 'POST';
+        request.body = body;
+        request.clientName = this.clientName;
+        request.delegateEvents(this);
+        return request;
+      }
+      
+      /**
+       * Calculate the caprId when given a childId and a fatherId and/or motherId.
+       * If we have a caprId then we clear the childId property and set the
+       * caprId property so that we can continue on with the add new parent and
+       * update caprs use case.
+       * 
+       * @return {Promise} resolves when the process is finished
+       */
+      async _calculateCaprIdWhenAddingParent() {
+        if(this.childId && (this.motherId || this.fatherId)) {
+          return this._findCaprIds(this.childId, this.fatherId, this.motherId)
+            .then((caprIds) => {
+              this.childId = undefined;
+              this.caprIds = caprIds;
+            });
+        }
+      }
+      
+      /**
+       * Get a list of caprIds that match the given childId, fatherId, and motherId.
+       * 
+       * @param {String} childId
+       * @param {String} fatherId
+       * @param {String} motherId
+       * @return {Promise} resolves to a list of caprIds
+       */
+      _findCaprIds(childId, fatherId, motherId) {
+        return new Promise((resolve, reject) => {
+          const request = document.createElement('fs-request');
+          request.url = `/platform/tree/persons/${childId}/parents`;
+          request.clientName = this.clientName;
+          request.delegateEvents(this);
+          request.addEventListener('response', (e) => {
+            const response = e.detail.response;
+            const caprIds = [];
+            if(response.data && response.data.childAndParentsRelationships) {
+              response.data.childAndParentsRelationships.forEach((rel) => {
+                if(this._caprMatches(rel, childId, fatherId, motherId)) {
+                  caprIds.push(rel.id);
+                }
+              });
+            }
+            resolve(caprIds);
+          });
+          request.generateRequest();
+        });
+      }
+      
+      /**
+       * Check whether a child-and-parents relationship matches the given
+       * childId, fatherId, and motherId
+       * 
+       * @return {Boolean}
+       */
+      _caprMatches(rel, childId, fatherId, motherId) {
+        return rel.child.resourceId === childId 
+           && // Father matches in both or doesn't exist in both
+          (
+            // Father exists and matches in both
+            (fatherId && rel.father && rel.father.resourceId === fatherId)
+            
+            // Or father doesn't exist in both
+            || (!fatherId && !rel.father)
+          )
+          
+          && // Mother matches in both or doesn't exist in both
+          (
+            // Mother exists and matches in both
+            (motherId && rel.mother && rel.mother.resourceId === motherId)
+            
+            // Or mother doesn't exist in both
+            || (!motherId && !rel.mother)
+          );
+      }
+      
+      /**
+       * Execute requests in series.
+       * Inspired by https://gist.github.com/joelnet/b286721a933e7e410120a8a2866dbcc8
+       * 
+       * @return {Promise}
+       */
+      _serialRequests(requests) {
+        return requests.reduce((promise, request) => {
+          return promise.then(result => {
+            // We defer creation of the promise until as late as possible
+            // because promises immediately begin to execute.
+            return new Promise((resolve, reject) => {
+              request.addEventListener('response', (e) => {
+                resolve(e);
+              });
+              request.generateRequest();
+            }).then(Array.prototype.concat.bind(result));
+          });
+        }, Promise.resolve([]));
+      }
+    }
+
+    window.customElements.define(FsAddPerson.is, FsAddPerson);
+  </script>
+</dom-module>

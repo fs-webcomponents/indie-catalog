@@ -1,0 +1,27 @@
+{
+  "name": "fs-person-portrait",
+  "version": "4.0.0",
+  "description": "A FamilySearch person card.",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "FamilySearch"
+  ],
+  "main": "fs-person-portrait.html",
+  "license": "MIT",
+  "homepage": "https://github.com/fs-webcomponents/fs-person-portrait/",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-person-mixin": "fs-webcomponents/fs-person-mixin#^4.0.0",
+    "fs-request": "fs-webcomponents/fs-request#^4.0.0"
+  },
+  "devDependencies": {
+    "fs-signin": "fs-webcomponents/fs-signin#^4.0.0",
+    "paper-card": "PolymerElements/paper-card#^2.0.0",
+    "paper-button": "PolymerElements/paper-button#^2.0.0"
+  }
+}

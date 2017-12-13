@@ -1,0 +1,47 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../fs-person-mixin/fs-person-mixin.html">
+<link rel="import" href="fs-person-name.html">
+
+<dom-module id="fs-person-preferred-name">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <fs-person-name name="{{name}}" editable="[[editable]]" save-url="[[_saveUrl]]"></fs-person-name>
+  </template>
+
+  <script>
+    /**
+     * `fs-person-preferred-name`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsPersonPreferredName extends FSPersonMixin(Polymer.Element) {
+      static get is() { return 'fs-person-preferred-name'; }
+      static get properties() {
+        return {
+          name: Object,
+          editable: {
+            type: Boolean,
+            value: false
+          }
+        };
+      }
+      _personChanged() {
+        if(this.person && this.person.names){
+          this._saveUrl = this._saveUrl = this.person.links.person.href;
+          this.name = this.person.names.find(n => n.preferred);
+        } else {
+          this.name = undefined;
+        }
+      }
+    }
+
+    window.customElements.define(FsPersonPreferredName.is, FsPersonPreferredName);
+  </script>
+</dom-module>

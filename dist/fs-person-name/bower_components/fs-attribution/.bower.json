@@ -1,0 +1,26 @@
+{
+  "name": "fs-attribution",
+  "main": "fs-attribution.html",
+  "version": "4.0.1",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-contributor": "fs-webcomponents/fs-contributor#^4.0.0",
+    "paper-input": "^2.0.2",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "homepage": "https://github.com/fs-webcomponents/fs-attribution",
+  "_release": "4.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.0.1",
+    "commit": "72b16ff5c877f7f03809810108eabf19cc879daa"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-attribution.git",
+  "_target": "^4.0.1",
+  "_originalSource": "fs-webcomponents/fs-attribution"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "fs-person-name",
+  "main": "fs-person-name.html",
+  "version": "4.1.3",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "paper-input": "PolymerElements/paper-input#^2.0.2",
+    "fs-person-mixin": "fs-webcomponents/fs-person-mixin#^4.0.0",
+    "fs-conclusion-mixin": "fs-webcomponents/fs-conclusion-mixin#^4.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
+    "fs-signin": "fs-webcomponents/fs-signin#^4.0.0",
+    "fs-client": "fs-webcomponents/fs-client#^4.1.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  }
+}

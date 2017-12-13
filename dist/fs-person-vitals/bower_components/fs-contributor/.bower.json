@@ -1,0 +1,36 @@
+{
+  "name": "fs-contributor",
+  "version": "4.0.2",
+  "description": "FamilySearch Polymer element for displaying a contributor",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "FamilySearch"
+  ],
+  "main": "fs-contributor.html",
+  "license": "MIT",
+  "homepage": "https://github.com/fs-webcomponents/fs-contributor/",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-request": "fs-webcomponents/fs-request#^4.0.0",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^3.0.0",
+    "fs-signin": "fs-webcomponents/fs-signin#^4.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0"
+  },
+  "_release": "4.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.0.2",
+    "commit": "3a44f731002ac15f4fe2de05da22960accfd205d"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-contributor.git",
+  "_target": "^4.0.0",
+  "_originalSource": "fs-webcomponents/fs-contributor"
+}

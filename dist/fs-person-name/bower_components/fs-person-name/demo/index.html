@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-person-name demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../fs-client/fs-client.html">
+    <link rel="import" href="../../fs-signin/fs-signin.html">
+    <link rel="import" href="../fs-person-name.html">
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <script>
+      const names = {
+        PorterClark: {
+          "id" : "a01d21ab-a319-4389-b47f-e476a2986ad0",
+          "type" : "http://gedcomx.org/BirthName",
+          "preferred" : true,
+          "nameForms" : [ {
+            "lang" : "en",
+            "fullText" : "Porter A Clark",
+            "parts" : [ {
+              "type" : "http://gedcomx.org/Given",
+              "value" : "Porter A"
+            }, {
+              "type" : "http://gedcomx.org/Surname",
+              "value" : "Clark"
+            } ],
+            "nameFormInfo" : [ {
+              "order" : "http://familysearch.org/v1/Eurotypic"
+            } ]
+          } ]
+        }
+      };
+    </script>
+    <div class="vertical-section-container centered">
+      <fs-client 
+        app-key="a02j00000099Mc2AAE" 
+        redirect-uri="." 
+        save-access-token 
+        exchange-code 
+        token-cookie-path="/"
+        redirect-after-sign-in="."></fs-client>
+      <fs-signin></fs-signin>
+      <h3>Empty fs-person-name demo</h3>
+      <demo-snippet>
+        <template>
+          <fs-person-name></fs-person-name>
+        </template>
+      </demo-snippet>
+      <h3>Basic fs-person-name demo</h3>
+      <demo-snippet>
+        <template>
+          <fs-person-name id="basic"></fs-person-name>
+          <script>
+            document.getElementById('basic').name = names.PorterClark;
+          </script>
+        </template>
+      </demo-snippet>
+      <h3>Editable fs-person-name</h3>
+      <demo-snippet>
+        <template>
+          <fs-person-name id="editable" editable save-url="https://integration.familysearch.org/platform/tree/persons/L58F-778"></fs-person-name>
+          <script>
+            document.getElementById('editable').name = names.PorterClark;
+          </script>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

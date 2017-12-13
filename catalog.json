@@ -1,0 +1,108 @@
+{
+  "packages": {
+    "fs-add-person": {
+      "git": "https://github.com/fs-webcomponents/fs-add-person",
+      "description": "Dialog that walks the user through the process of adding a new person to the FamilySearch Family Tree"
+    },
+    "fs-api-aware": {
+      "git": "https://github.com/fs-webcomponents/fs-api-aware",
+      "description": "Enables elements to connect to a specific SDK instance"
+    },
+    "fs-attribution": {
+      "git": "https://github.com/fs-webcomponents/fs-attribution",
+      "description": "Display the attribution of a conclusion"
+    },
+    "fs-client": {
+      "git": "https://github.com/fs-webcomponents/fs-client",
+      "description": "Setup and manage the JavaScript SDK"
+    },
+    "fs-conclusion-mixin": {
+      "git": "https://github.com/fs-webcomponents/fs-conclusion-mixin",
+      "description": "Shared template and behavior for conclusions"
+    },
+    "fs-contributor": {
+      "git": "https://github.com/fs-webcomponents/fs-contributor",
+      "description": "Display the contributor"
+    },
+    "fs-date": {
+      "git": "https://github.com/fs-webcomponents/fs-date",
+      "description": "Display, edit, and normalize a date"
+    },
+    "fs-fact": {
+      "git": "https://github.com/fs-webcomponents/fs-fact",
+      "description": "Display and edit a fact"
+    },
+    "fs-pedigree": {
+      "git": "https://github.com/fs-webcomponents/fs-pedigree",
+      "description": "Display a person's pedigree"
+    },
+    "fs-person-card": {
+      "git": "https://github.com/fs-webcomponents/fs-person-card",
+      "description": "Summary card for a person"
+    },
+    "fs-person-chip": {
+      "git": "https://github.com/fs-webcomponents/fs-person-chip",
+      "description": "Material design chip for a person"
+    },
+    "fs-person-facts": {
+      "git": "https://github.com/fs-webcomponents/fs-person-facts",
+      "description": "List a person's facts"
+    },
+    "fs-person-families": {
+      "git": "https://github.com/fs-webcomponents/fs-person-families",
+      "description": "Display a person's families"
+    },
+    "fs-person-gender": {
+      "git": "https://github.com/fs-webcomponents/fs-person-gender",
+      "description": "Display and update a person's gender"
+    },
+    "fs-person-mixin": {
+      "git": "https://github.com/fs-webcomponents/fs-person-mixin",
+      "description": "Class mixin of shared person behavior"
+    },
+    "fs-person-name": {
+      "git": "https://github.com/fs-webcomponents/fs-person-name",
+      "description": "Display and edit a person's name"
+    },
+    "fs-person-portrait": {
+      "git": "https://github.com/fs-webcomponents/fs-person-portrait",
+      "description": "Display a person's portrait"
+    },
+    "fs-person-sources": {
+      "git": "https://github.com/fs-webcomponents/fs-person-sources",
+      "description": "List the sources attached to a person"
+    },
+    "fs-person-summary": {
+      "git": "https://github.com/fs-webcomponents/fs-person-summary",
+      "description": "Summary of a person"
+    },
+    "fs-person-vitals": {
+      "git": "https://github.com/fs-webcomponents/fs-person-vitals",
+      "description": "Display and edit a person's vitals"
+    },
+    "fs-place": {
+      "git": "https://github.com/fs-webcomponents/fs-place",
+      "description": "Display, edit, and normalize a place"
+    },
+    "fs-request": {
+      "git": "https://github.com/fs-webcomponents/fs-request",
+      "description": "Declaratively handle API requests"
+    },
+    "fs-signin": {
+      "git": "https://github.com/fs-webcomponents/fs-signin",
+      "description": "Sign in button"
+    },
+    "fs-source-attachments": {
+      "git": "https://github.com/fs-webcomponents/fs-source-attachments",
+      "description": "List person's that a source is attached to"
+    },
+    "fs-user-history": {
+      "git": "https://github.com/fs-webcomponents/fs-user-history",
+      "description": "Display a user's history"
+    },
+    "fs-user-mixin": {
+      "git": "https://github.com/fs-webcomponents/fs-user-mixin",
+      "description": "Shared behavior for loading the user's profile"
+    }
+  }
+}

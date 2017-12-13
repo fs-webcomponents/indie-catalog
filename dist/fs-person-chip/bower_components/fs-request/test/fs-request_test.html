@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-request test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-request.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <fs-request auto url="/basic-get"></fs-request>
+      </template>
+    </test-fixture>
+    
+    <test-fixture id="post">
+      <template>
+        <fs-request auto method="post" url="/post"></fs-request>
+      </template>
+    </test-fixture>
+    
+    <test-fixture id="headers">
+      <template>
+        <fs-request auto url="/headers"></fs-request>
+      </template>
+    </test-fixture>
+    
+    <test-fixture id="require-auth">
+      <template>
+        <fs-request auto url="/basic-get" client-name="req-auth" require-authentication></fs-request>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('fs-request', function() {
+        
+        let server;
+
+        setup(function(){
+          server = sinon.fakeServer.create({
+            respondImmediately: true
+          });
+          server.respondWith(
+            'GET',
+            /\/basic-get/,
+            [
+              200,
+              { 'Content-Type': 'application/json' },
+              '{"persons":[{}]}'
+            ]
+          );
+          server.respondWith(
+            'POST',
+            /\/post/,
+            [
+              201,
+              { 'Content-Type': 'application/json' },
+              ''
+            ]
+          );
+        });
+        
+        test('basic GET', function(done) {
+          var element = fixture('basic');
+          element.addEventListener('response', function(e){
+            validateResponseState(element);
+            assert(event.detail.response.data.persons.length === 1);
+            done();
+          });
+        });
+        
+        test('use without attaching to the DOM', function(done){
+          var element = new FSRequest();
+          element.addEventListener('response', function(e){
+            validateResponseState(element);
+            assert(event.detail.response.data.persons.length === 1);
+            done();
+          });
+          element.url = '/basic-get';
+          element.generateRequest();
+        });
+        
+        test('POST', function(done){
+          var element = fixture('post');
+          element.addEventListener('response', function(e){
+            validateResponseState(element);
+            expect(e.detail.response.statusCode).to.equal(201);
+            done();
+          });
+        });
+        
+        // I don't think we can test headers with sinon
+        test('headers');
+        
+        test('requireAuthentication', function(done){
+          var element = fixture('require-auth');
+          
+          // Test that a request hasn't been sent even though `auto` is enabled
+          assert(element.requireAuthentication);
+          assert(!element.sent);
+          assert(!element.loading);
+          assert(!element.completed);
+          
+          // Listen for a response which means the request was sent after the
+          // client was authenticated (which we do next)
+          element.addEventListener('response', function(e){
+            validateResponseState(element);
+            assert(event.detail.response.data.persons.length === 1);
+            done();
+          });
+          
+          // Set an access token on the client to make it authenticated
+          var client = document.createElement('fs-client');
+          client.name = 'req-auth';
+          client.accessToken = 'token';
+          client.configureClient();
+        });
+        
+        function validateResponseState(element) {
+          assert(element.sent);
+          assert(element.succeeded);
+          assert(element.succeeded);
+          assert(!element.loading);
+          assert(!element.failed);
+          assert(element.completed);
+        }
+      });
+    </script>
+
+  </body>
+</html>

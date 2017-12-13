@@ -1,0 +1,22 @@
+{
+  "name": "pannable-mixin",
+  "homepage": "https://github.com/fs-webcomponents/pannable-mixin",
+  "version": "1.2.0",
+  "description": "Mixin to make an element pannable",
+  "main": "pannable-mixin.html",
+  "keywords": [
+    "web-component",
+    "panning",
+    "pan"
+  ],
+  "license": "MIT",
+  "_release": "1.2.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.2.0",
+    "commit": "b0b2b3c8ef33bffe837e311e00fdc784974295c0"
+  },
+  "_source": "https://github.com/fs-webcomponents/pannable-mixin.git",
+  "_target": "^1.2.0",
+  "_originalSource": "fs-webcomponents/pannable-mixin"
+}

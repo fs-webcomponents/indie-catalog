@@ -1,0 +1,32 @@
+{
+  "name": "fs-client",
+  "version": "4.2.1",
+  "description": "Polymer element that manages JavaScript SDK instances",
+  "homepage": "https://github.com/fs-webcomponents/fs-client",
+  "main": "fs-client.html",
+  "license": "MIT",
+  "ignore": [
+    "/.*"
+  ],
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "familysearch"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0"
+  },
+  "devDependencies": {
+    "web-component-tester": "^6.0.0"
+  },
+  "_release": "4.2.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.2.1",
+    "commit": "332aa86a914e2dcd778ac8657a4b2944a53dc40b"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-client.git",
+  "_target": "^4.0.0",
+  "_originalSource": "fs-webcomponents/fs-client"
+}

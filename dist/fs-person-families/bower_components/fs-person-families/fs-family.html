@@ -1,0 +1,247 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-person-chip/fs-person-chip.html">
+<link rel="import" href="../paper-card/paper-card.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../iron-collapse/iron-collapse.html">
+<link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+
+<!--
+Display a family.
+
+Set the family:
+
+    <fs-family family="[[family]]"></fs-family>
+    
+You may have the children list collapsed by default:
+
+    <fs-family family="[[family]]" children-collapsed></fs-family>
+ 
+A family object consists of a father, mother, and a list of children
+
+    {
+      father: {Object},
+      mother: {Object},
+      children: [ {Object} ]
+    }
+    
+@group FamilySearch Elements
+@customElement
+@polymer
+@demo demo/index.html
+-->
+
+<dom-module id="fs-family">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      
+      paper-card {
+        width: 100%;
+      }
+      
+      .card-content fs-person-chip:last-of-type {
+        margin-top: 16px;
+      }
+      
+      #children {
+        border-top: 1px solid #ddd;
+      }
+      
+      #childrenList fs-person-chip {
+        margin: 8px 16px;
+      }
+      
+      #childrenList fs-person-chip:first-child{
+        margin-top: 0px;
+      }
+      
+      #noChildren {
+        color: --secondary-text-color;
+      }
+    </style>
+    <paper-card>
+      <div class="card-content">
+        <template is="dom-if" if="{{_hasFather(family)}}">
+          <fs-person-chip client-name="[[clientName]]" person="[[family.father]]" on-tap="_fatherTap"></fs-person-chip>
+        </template>
+        <template is="dom-if" if="{{!_hasFather(family)}}">
+          <fs-person-chip>
+            <paper-button on-tap="_addFather">+ Add Spouse</paper-button>
+          </fs-person-chip>
+        </template>
+        <template is="dom-if" if="{{_hasMother(family)}}">
+          <fs-person-chip client-name="[[clientName]]" person="[[family.mother]]" on-tap="_motherTap"></fs-person-chip>
+        </template>
+        <template is="dom-if" if="{{!_hasMother(family)}}">
+          <fs-person-chip>
+            <paper-button on-tap="_addMother">+ Add Spouse</paper-button>
+          </fs-person-chip>
+        </template>
+      </div>
+      <template is="dom-if" if="{{_displayChildren(family, addPersons)}}">
+        <div id="children">
+          <paper-button on-tap="_toggleChildren" noink>{{_buttonText(childrenCollapsed)}}</paper-button>
+          <iron-collapse opened="[[!childrenCollapsed]]">
+            <div id="childrenList">
+              <template is="dom-repeat" items="[[family.children]]">
+                <fs-person-chip client-name="[[clientName]]" person="[[item]]" on-tap="_childTap"></fs-person-chip>
+              </template>
+              <template is="dom-if" if="{{addPersons}}">
+                <paper-button on-tap="_addChild">+ Add Child</paper-button>
+              </template>
+            </div>
+          </iron-collapse>
+        </div>
+      </template>
+    </paper-card>
+  </template>
+  <script>
+    class FSFamily extends Polymer.GestureEventListeners(FSApiAwareMixin(Polymer.Element)) {
+      
+      static get is() { return 'fs-family'; }
+      
+      /**
+       * Fired when a person is clicked.
+       *
+       * @event person-click
+       * @param {{personId:string}} ID of the person that was clicked.
+       * @param {{sourceEvent:event}} Original click event.
+       */
+       
+      /**
+       * Fired when the "Add Child" button is clicked.
+       * This event does not bubble; it is designed to only be handled
+       * by the `fs-person-families` element.
+       * 
+       * @event add-child
+       * @param {{fatherId:string}} ID of the father of the family
+       * @param {{motherId:string}} ID of the mother of the family
+       */
+       
+      /**
+       * Fired when the "Add Spouse" button is clicked for a husband.
+       * This event does not bubble; it is designed to only be handled
+       * by the `fs-person-families` element.
+       * 
+       * @event add-father
+       * @param {{motherId:string}} ID of the mother of the family
+       * @param {{gender:string}} http://gedcomx.org/Male
+       */
+       
+      /**
+       * Fired when the "Add Spouse" button is clicked for a wife.
+       * This event does not bubble; it is designed to only be handled
+       * by the `fs-person-families` element.
+       * 
+       * @event add-mother
+       * @param {{fatherId:string}} ID of the father of the family
+       * @param {{gender:string}} http://gedcomx.org/Female
+       */ 
+      
+      static get properties() {
+        return {
+          
+          /**
+           * A family object has the form {father, mother, children[]}
+           */
+          family: {
+            type: Object
+          },
+          
+          /**
+           * When true the children list will be collapsed by default.
+           */
+          childrenCollapsed: {
+            type: Boolean,
+            reflectToAttribute: true,
+            value: false
+          },
+          
+          /**
+           * Whether the Add Spouse and Add Child buttons should be shown
+           */
+          addPersons: {
+            type: Boolean,
+            value: false
+          }
+          
+        };
+      }
+      
+      _buttonText() {
+        return this.childrenCollapsed ? 'Show Children' : 'Hide Children';
+      }
+      
+      _toggleChildren() {
+        this.childrenCollapsed = !this.childrenCollapsed;
+      }
+      
+      _hasFather(family) {
+        return family.father;
+      }
+      
+      _hasMother(family) {
+        return family.mother;
+      }
+      
+      _fatherTap(e) {
+        if(this.family.father){
+          this._firePersonTap(e, this.family.father.id);
+        }
+      }
+      
+      _motherTap(e) {
+        if(this.family.mother){
+          this._firePersonTap(e, this.family.mother.id);
+        }
+      }
+      
+      _childTap(e) {
+        this._firePersonTap(e, e.model.item.id);
+      }
+      
+      _firePersonTap(e, personId) {
+        e.detail.personId = personId;
+        this.dispatchEvent(new CustomEvent('person-click', {
+          detail: e.detail,
+          bubbles: true,
+          composed: true
+        }));
+      }
+      
+      _displayChildren(family, addPersons) {
+        return addPersons || (family && Array.isArray(family.children) && family.children.length > 0);
+      }
+      
+      _addChild() {
+        this._fireAddEvent('child');
+      }
+      
+      _addFather() {
+        this._fireAddEvent('father', 'http://gedcomx.org/Male');
+      }
+      
+      _addMother() {
+        this._fireAddEvent('mother', 'http://gedcomx.org/Female');
+      }
+      
+      _fireAddEvent(person, gender) {
+        const detail = {gender};
+        if(this.family.father) {
+          detail.fatherId = this.family.father.id;
+        }
+        if(this.family.mother) {
+          detail.motherId = this.family.mother.id;
+        }
+        this.dispatchEvent(new CustomEvent(`add-${person}`, {detail}));
+      }
+      
+    }
+    
+    customElements.define(FSFamily.is, FSFamily);
+  </script>
+</dom-module>

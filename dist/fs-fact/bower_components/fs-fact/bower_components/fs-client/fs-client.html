@@ -1,0 +1,556 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<script src="//unpkg.com/fs-js-lite@2.6.1/dist/FamilySearch.js"></script>
+
+<script>
+  // Wrap in a function so we don't pollute the global scope.
+  (function(){
+    
+    /**
+     * Service for managing instances of the FamilySearch SDK
+     */
+    var Clients = {
+      
+      _defaultName: 'default',
+      
+      /**
+       * Map of sdk instances
+       */
+      _clients: {},
+      
+      /**
+       * Add a client.
+       * 
+       * @param {Object} client FamilySearch SDK instance
+       * @param {String} name
+       * @param {String} redirectAfterSignOut
+       * @param {Boolean} updateHistoryState
+       */
+      addClient: function(client, name, redirectAfterSignOut = '', updateHistoryState = false){
+        name = this._setDefaultName(name);
+        var clientConfig = {
+          client,
+          observers: [],
+          redirectAfterSignOut,
+          updateHistoryState
+        };
+        this._clients[name] = clientConfig;
+      },
+      
+      /**
+       * Get a client object.
+       *
+       * @param {String} [name]
+       * @return {Object} FamilySearch SDK instance
+       */
+      getClient: function(name){
+        name = this._setDefaultName(name);
+        if(this._clients[name]){
+          return this._clients[name].client;
+        }
+      },
+      
+      /**
+       * Add an observer to a client
+       * 
+       * @param {Object} observer
+       * @param {String} name
+       */
+      addObserver: function(observer, name){
+        name = this._setDefaultName(name);
+        if(this._clients[name]){
+          this._clients[name].observers.push(observer);
+        }
+      },
+      
+      /**
+       * Notify observers that the authentication state changed
+       * 
+       * @param {String} [name]
+       */
+      notify: function(name){
+        name = this._setDefaultName(name);
+        if(this._clients[name]){
+          var authenticated = !!this._clients[name].client.getAccessToken(),
+              observers = this._clients[name].observers;
+          for(var i = 0; i < observers.length; i++){
+            observers[i]._setAuthenticated(authenticated);
+          }
+        }
+      },
+      
+      /**
+       * Get the client's redirectAfterSignOut setting
+       * 
+       * @param {String} name Client's name
+       */
+      redirectAfterSignOut: function(name) {
+        if(this._clients[name]) {
+          return this._clients[name].redirectAfterSignOut;
+        }
+      },
+      
+      /**
+       * Get the client's updateHistoryState setting
+       * 
+       * @param {String} name Client's name
+       */
+      updateHistoryState: function(name) {
+        if(this._clients[name]) {
+          return this._clients[name].updateHistoryState;
+        }
+      },
+      
+      /**
+       * Return the default if name isn't defined
+       */
+      _setDefaultName: function(name){
+        if(typeof name === 'undefined'){
+          return this._defaultName;
+        } else {
+          return name;
+        }
+      }
+    };
+    
+    /**
+     * `fs-client` is used to configure and access an instance of the [FS JS Lite SDK](https://github.com/FamilySearch/fs-js-lite).
+     * 
+     *     <fs-client app-key="myappkey123" redirect-uri="/fs-auth" environment="sandbox" save-access-token></fs-client>
+     * 
+     * ### Accessing The SDK Object
+     * 
+     * It is also used inside of other elements to obtain a reference to the SDK instance.
+     * First you add the client element to the new element's local dom:
+     * 
+     *     <fs-client></fs-client>
+     * 
+     * Then add FSBehavior to the element definition:
+     * 
+     *     behaviors: [FSBehavior]
+     * 
+     * Now in the element's methods you can access the client object with `getClient()`:
+     * 
+     *     this.getClient().get('/platform/users/current', function(error, response){})
+     * 
+     * ### Authentication
+     * 
+     * Use the `signIn()` method to initiate authentication via OAuth2. You'll
+     * likely want to set the `exchangeCode` property to true so that the client
+     * automatically finishes the OAuth process. You may also register a path
+     * on `redirectAfterSignIn` so that the URL is left clean instead of the
+     * `code` query param remaining in the URL.
+     * 
+     * ### Debouncing
+     * 
+     * When creating an app that includes lots of FS web components it is common
+     * for multiple components to request the same data at the same time. For
+     * example, a person's detail page may have 3 components that all request
+     * the person's data. By setting `debounceDuplicates` to true, the client
+     * will transparently resolve duplicate requests and have them share the
+     * same response.
+     * 
+     * ### Multiple SDK Instances
+     * 
+     * `fs-client` is designed to allow for multiple instance of an SDK. You
+     * differentiate between the instance with the `name` attribute.
+     * 
+     *     <fs-client name="user1"></fs-client>
+     *     <fs-client name="user2"></fs-client>
+     * 
+     * @customElement
+     * @polymer
+     */
+    class FSClient extends Polymer.Element {
+      
+      /**
+       * Fired when notifyUnauthorizedResponses is enabled at a 401 response
+       * is received from the API.
+       * 
+       * @event unauthorized-response
+       */
+      
+      static get is() { return 'fs-client'; }
+      
+      static get properties() {
+        return {
+        
+          /**
+           * The app key you received from FamilySearch
+           */
+          appKey: String,
+          
+          /**
+           * The redirect URI for OAuth
+           */
+          redirectUri: String,
+          
+          /**
+           * The environment. `production`, `staging`, or `integration`.
+           */
+          environment: {
+            type: String,
+            value: 'integration'
+          },
+          
+          /**
+           * Whether the access token should be saved and loaded from cookies.
+           */
+          saveAccessToken: {
+            type: Boolean,
+            value: false
+          },
+          
+          /**
+           * Optional name for this client instance. If you use multiple instances then
+           * components which require an instance can configured with the client
+           * name so they use the proper client instance.
+           */
+          name: {
+            type: String,
+            value: 'default'
+          },
+          
+          /**
+           * The FamilySearch SDK object
+           */
+          client: {
+            type: Object,
+            readOnly: true
+          },
+          
+          /**
+           * Access token. Should only be used to set the access token on
+           * initialization. This property should be read to 
+           */
+          accessToken: {
+            type: String,
+            value: ''
+          },
+          
+          /**
+           * Whether the client is authenticated
+           */
+          authenticated: {
+            type: Boolean,
+            readOnly: true,
+            notify: true,
+            value: false
+          },
+          
+          /**
+           * Exchange the OAuth code client side.
+           */
+          exchangeCode: {
+            type: Boolean,
+            value: false
+          },
+          
+          /**
+           * Path to redirect the user to after successfully exchanging a code for
+           * a token. This is often desired to remove the code query param from 
+           * the URL. Set to `.` to reload the current location. This is only used
+           * when `exchangeCode` is set to `true`.
+           */
+          redirectAfterSignIn: {
+            type: String,
+            value: ''
+          },
+          
+          /**
+           * Path to redirect the user to after signing out.
+           */
+          redirectAfterSignOut: {
+            type: String,
+            value: ''
+          },
+          
+          /**
+           * When redirecting users due to `redirectAfterSignIn` or `redirectAfterSignOut`
+           * update the browser's history state instead of window.location.
+           */
+          updateHistoryState: {
+            type: Boolean,
+            value: false
+          },
+          
+          /**
+           * When enabled, multiple outstanding requests for the same resource 
+           * will be de-duplicated. In other words, the callback for successive
+           * requests will be resolved with the response from the first. This
+           * only works for outstanding GET requests.
+           */
+          debounceDuplicates: {
+            type: Boolean,
+            value: false
+          },
+          
+          /**
+           * When enabled, create an unauthenticated session.
+           * https://www.familysearch.org/developers/docs/guides/authentication#unauthenticated-access-tokens
+           */
+          unauthenticatedSession: {
+            type: Boolean,
+            value: false
+          },
+          
+          /**
+           * When enabled, emit the `unauthorized-response` event when 401s are
+           * received. The event is debounced every 1s.
+           */
+          notifyUnauthorizedResponses: {
+            type: Boolean,
+            value: false
+          },
+          
+          /**
+           * Path value for the access token cookie.
+           * Defaults to the current path (which is probably not what you want).
+           */
+          tokenCookiePath: String,
+          
+          /** Whether the notifyUnauthorizedResponses middleware has been added */
+          _notifyUnauthorizedResponsesMiddlewareAdded: {
+            type: Boolean,
+            value: false
+          },
+          
+          /**
+           * When using an unauthenticated session, use this to set the IP Address
+           * that is required for obtaining an access token.
+           */
+          ipAddress: String
+          
+        };
+      }
+      
+      ready() {
+        super.ready();
+        this.configureClient();
+      }
+      
+      /**
+       * Designed to only be called once. This method is public so that you can
+       * manually call it if you want to use a client instance in memory
+       * (ready() isn't called unless it's attached to the DOM).
+       */
+      configureClient() {
+        
+        // Don't setup the client if it's already been setup
+        if(this.client) {
+          return;
+        }
+        
+        // Fetch the client; create one if it doesn't yet exist
+        var client = Clients.getClient(this.name);
+        if(client === undefined){
+          client = new FamilySearch({});
+          Clients.addClient(client, this.name, this.redirectAfterSignOut, this.updateHistoryState);
+        }
+        this._setClient(client);
+        
+        // Generate an options object for the SDK
+        var config = {
+          appKey: this.appKey,
+          redirectUri: this.redirectUri,
+          environment: this.environment,
+          saveAccessToken: this.saveAccessToken,
+          tokenCookiePath: this.tokenCookiePath
+        };
+        
+        // Allow relative URIs to be specified. This makes it easy to create
+        // demos that may be run both locally and on the web on multiple hosts.
+        if(config.redirectUri){
+          
+          // Allow . to represent current location.
+          if(config.redirectUri === '.'){
+            config.redirectUri = document.location.href;
+          } else {
+            config.redirectUri = qualifyURL(config.redirectUri);
+          }
+        }
+        
+        // Configure the client
+        client.config(config);
+        
+        // Add the debounce middleware when debounce is enabled
+        if(this.debounceDuplicates && !client._debouncing){
+          
+          // Setup the debouncing storage directly on the client. This ensures
+          // that each client has it's unique storage and that we don't cross 
+          // the streams.
+          client._debouncing = {};
+          client.addRequestMiddleware(debounceRequestMiddlware);
+          client.addResponseMiddleware(debounceResponseMiddleware);
+        }
+        
+        // Check for the code query parameter that signifies an oauth redirect
+        // response. oauthResponse() automatically checks the URL and doesn't
+        // fire the callback unless it finds the code. Thus we don't have to
+        // check ourself and can just call it.
+        if(this.exchangeCode){
+          client.oauthResponse(this._tokenResponse.bind(this));
+        }
+        
+        if(this.accessToken) {
+          client.setAccessToken(this.accessToken);
+        }
+        
+        // TODO: don't let this be called multiple times
+        Clients.addObserver(this, this.name);
+        
+        // Set initial authenticated state
+        this._setAuthenticated(!!client.getAccessToken());
+        
+        // Notify all other observers of possible auth changes
+        Clients.notify(this.name);
+        
+        // Unauthenticates session?
+        if(this.appKey && this.unauthenticatedSession && this.ipAddress) {
+          client.oauthUnauthenticatedToken(this.ipAddress, (error, response) => {
+            
+            // Notify of potential auth changes. If auth was successful, the token
+            // will be in the SDK client already and detected by our code that
+            // determines auth status.
+            Clients.notify(this.name);
+          });
+        }
+        
+        // Add notifyUnauthorizedResponses middleware
+        if(this.notifyUnauthorizedResponses && !this._notifyUnauthorizedResponsesMiddlewareAdded) {
+          client.addResponseMiddleware((client, request, response, next) => {
+            if(response.statusCode === 401) {
+              this._debounceUnauthorizedResponseNotification();
+            }
+            next();
+          });
+          this._notifyUnauthorizedResponsesMiddlewareAdded = true;
+        }
+      }
+      
+      /**
+       * Begin the OAuth2 process for signing in (authenticating) with FamilySearch.
+       * Call this method instead of directly using the client so that this
+       * component can accurately track the state of authentication and notify
+       * other components of changes.
+       */
+      signIn() {
+        var self = this;
+        if(self.client){
+          self.client.oauthRedirect();
+        }
+      }
+      
+      /**
+       * Sign out the user (end their session).
+       * Call this method instead of directly using the client so that this
+       * component can accurately track the state of authentication and notify
+       * other components of changes.
+       */
+      signOut() {
+        this.client.deleteAccessToken();
+        Clients.notify(this.name);
+        var redirect = Clients.redirectAfterSignOut(this.name);
+        if(redirect){
+          this._redirect(redirect);
+        }
+      }
+      
+      /**
+       * Handle the response of an OAuth token request.
+       */
+      _tokenResponse(error, response) {
+        var redirectPath;
+        if(response){
+          Clients.notify(this.name);
+          if(response.statusCode === 200 && this.redirectAfterSignIn){
+            if(this.redirectAfterSignIn === '.'){
+              redirectPath = window.location.pathname;
+            } else {
+              redirectPath = this.redirectAfterSignIn;
+            }
+            this._redirect(redirectPath);
+          }
+        }
+      }
+      
+      /**
+       * Perform a redirect using history or location.
+       */
+      _redirect(path) {
+        if(path){
+          if(Clients.updateHistoryState(this.name)){
+            window.history.replaceState('', '', path);
+          } else {
+            window.location.href = path;
+          }
+        }
+      }
+      
+      /**
+       * Debounce the unauthorized response notification that is emitted
+       * when notifyUnauthorizedResponses is true and a 401 response is received
+       */
+      _debounceUnauthorizedResponseNotification() {
+        this._unauthorizedResponseDebouncer = Polymer.Debouncer.debounce(
+          this._unauthorizedResponseDebouncer, 
+          Polymer.Async.timeOut.after(1000),
+          () => {
+            this.dispatchEvent(new CustomEvent('unauthorized-response', {
+              bubbles: true,
+              composed: true
+            }));
+          });
+      }
+      
+    }
+    
+    customElements.define(FSClient.is, FSClient);
+    
+    function debounceRequestMiddlware(client, request, next){
+      if(request.method === 'GET'){
+        
+        // We operate normally for the first request and store the next method
+        // for successive requests. Then when the requests resolves we return 
+        // the response to any stored next methods.
+        if(client._debouncing[request.url] === undefined){
+          client._debouncing[request.url] = [];
+          next();
+        } else {
+          client._debouncing[request.url].push(next);
+        }
+      } else {
+        next();
+      }
+    }
+    
+    function debounceResponseMiddleware(client, request, response, next){
+      if(request.method === 'GET'){
+        var debounces = client._debouncing[request.url];
+        if(debounces && debounces.length){
+          response.debounced = true;
+          for(var i = 0; i < debounces.length; i++){
+            
+            // next() may also use setTimeout to ensure async callbacks. But we
+            // also do it here anyway to ensure that the original callback is
+            // called first.
+            (function(j){
+              setTimeout(function(){
+                debounces[j](null, response);
+              });
+            }(i));
+          }
+        }
+        delete client._debouncing[request.url];
+      }
+      next();
+    }
+    
+    // http://stackoverflow.com/q/470832
+    function qualifyURL(url) {
+    	var a = document.createElement('a');
+    	a.href = url;
+    	return a.href;
+    }
+    
+  })();
+</script>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-person-mixin test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-person-mixin.html">
+  </head>
+  <body>
+
+    <script>
+      class MixinApplied extends FSPersonMixin(Polymer.Element) {
+        static get is() { return 'mixin-applied'; }
+      }
+      customElements.define(MixinApplied.is, MixinApplied);
+    </script>
+
+    <test-fixture id="default">
+      <template>
+        <mixin-applied></mixin-applied>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="load-person">
+      <template>
+        <mixin-applied client-name="load" person-id="PPPP-PPP"></mixin-applied>
+      </template>
+    </test-fixture>
+    
+    <script>
+    
+      suite('fs-api-aware', function() {
+
+        let server;
+
+        setup(function(){
+          server = sinon.fakeServer.create({
+            respondImmediately: true
+          });
+          server.respondWith(
+            'GET',
+            /\/platform\/tree\/persons\/PPPP-PPP/,
+            [
+              200,
+              { 'Content-Type': 'application/json' },
+              '{"persons":[{"id":"PPPP-PPP"}]}'
+            ]
+          );
+        });
+
+        test('instantiating the element with default properties works', function() {
+          var element = fixture('default');
+          assert.equal(element.clientName, 'default');
+          assert.equal(element.personId, undefined);
+          assert.equal(element.person, undefined);
+          assert.equal(element.personLoading, false);
+          assert.equal(element.personRequested, false);
+        });
+
+        test('load a person', function(done) {
+          var element = fixture('load-person');
+          assert.equal(element.clientName, 'load');
+          assert.equal(element.personId, 'PPPP-PPP');
+          assert.equal(element.person, undefined);
+          
+          // Make sure the request wasn't sent before the client was authenticated
+          assert.equal(element.personLoading, false);
+          assert.equal(element.personRequested, false);
+          
+          // Authenticate the client
+          var client = document.createElement('fs-client');
+          client.name = 'load';
+          client.accessToken = 'token';
+          client.configureClient();
+          
+          element.addEventListener('person-changed', function(){
+            assert.equal(element.personId, 'PPPP-PPP');
+            assert.equal(element.personLoading, false);
+            assert.equal(element.personRequested, true);
+            expect(element.person).to.exist;
+            done();
+          });
+        });
+        
+        test('person provided', function(){
+          var element = fixture('default');
+          element.person = {
+            id: 'MMMM-MMM'
+          };
+          assert.equal(element.personId, 'MMMM-MMM');
+          assert.equal(element.personRequested, false);
+          assert.equal(element.personLoading, false);
+          expect(element.person).to.exist;
+        });
+        
+      });
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,154 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../polymer/lib/utils/debounce.html">
+<link rel="import" href="../paper-autocomplete/paper-autocomplete.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-request/fs-request.html">
+
+<dom-module id="fs-date">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <div id="date" hidden$="[[edit]]">{{_displayDate(date)}}</div>
+    <template is="dom-if" if="[[edit]]">
+      <fs-request 
+        id="request"
+        client-name="[[clientName]]"
+        url="{{_computeUrl(date.original)}}"
+        headers='{"Accept":"text/plain"}'
+        on-response="_handleResponse"></fs-request>
+      <paper-autocomplete 
+        id="autocomplete" 
+        label="[[label]]" 
+        no-label-float="[[no-label-float]]"
+        remote-source
+        disabled="{{disabled}}"
+        on-keyup="_autocompleteTextChanged"
+        on-autocomplete-selected="_autocompleteSelected"
+        on-autocomplete-reset-blur="_autocompleteCleared"></paper-autocomplete>
+    </template>
+  </template>
+
+  <script>
+    /**
+     * `fs-date`
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsDate extends FSApiAwareMixin(Polymer.Element) {
+      
+      static get is() { return 'fs-date'; }
+      
+      static get properties() {
+        return {
+          date: {
+            type: Object,
+            notify: true
+          },
+          
+          label: {
+            type: String,
+            value: 'Date'
+          },
+          
+          noLabelFloat: {
+            type: Boolean,
+            value: false
+          },
+          
+          disabled: {
+            type: Boolean,
+            value: false
+          },
+          
+          /* Toggle edit mode */
+          edit: {
+            type: Boolean,
+            value: false,
+            observer: '_setupEdit'
+          },
+          
+          _debouncer: Object
+        };
+      }
+      
+      _displayDate(date) {
+        if(!date) {
+          return '';
+        }
+        return date.original || (date.normalized && date.normalized[0] ? date.normalized[0].value : false) || date.formal;
+      }
+      
+      _setupEdit(edit) {
+        // Have to defer this execution to give time for Polymer to stamp the
+        // DOM since it's in a dom-if helper template
+        if(edit && this.date) {
+          setTimeout(() => {
+            this.shadowRoot.querySelector('#autocomplete').setOption({
+              text: this._displayDate(this.date),
+              value: JSON.stringify(this.date)
+            });
+          });
+        }
+      }
+      
+      _computeUrl(original) {
+        if(original) {
+          return `/platform/dates?date=${original}`;
+        }
+      }
+      
+      _autocompleteSelected(e) {
+        this.date = JSON.parse(e.detail.value);
+      }
+      
+      _autocompleteTextChanged() {
+        const text = this.shadowRoot.querySelector('#autocomplete').text;
+        if(text) {
+          if(!this.date) {
+            this.date = {};
+          }
+          this.set('date.original', text);
+          this._debouncer = Polymer.Debouncer.debounce(this._debouncer, Polymer.Async.timeOut.after(300), () => { 
+            this.shadowRoot.querySelector('#request').generateRequest(); 
+          });
+        } else {
+          this.date = undefined;
+        }
+      }
+      
+      _autocompleteCleared() {
+        this.date = undefined;
+      }
+      
+      _handleResponse(e) {
+        const response = e.detail.response;
+        if(response.statusCode === 200) {
+          const value = {
+            original: response.body,
+            normalized: [{
+              lang: response.headers['content-language'],
+              value: response.body
+            }],
+            formal: response.headers.location ? response.headers.location.replace('gedcomx-date:', '') : undefined
+          };
+          this.shadowRoot.querySelector('#autocomplete').suggestions([
+            {
+              text: response.body,
+              value: JSON.stringify(value)
+            }
+          ]);
+        } else {
+          this.shadowRoot.querySelector('#autocomplete').suggestions([]);
+        }
+      }
+    }
+
+    window.customElements.define(FsDate.is, FsDate);
+  </script>
+</dom-module>

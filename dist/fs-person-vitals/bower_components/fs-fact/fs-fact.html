@@ -1,0 +1,84 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../fs-conclusion-mixin/fs-conclusion-mixin.html">
+<link rel="import" href="../fs-date/fs-date.html">
+<link rel="import" href="../fs-place/fs-place.html">
+<link rel="import" href="fs-fact-types.html">
+<link rel="import" href="fs-fact-value.html">
+
+<dom-module id="fs-fact">
+  <template>
+    <div>{{_factTypeDisplay(fact.type)}}</div>
+    <template is="dom-if" if="{{_supportsValue(fact.type)}}">
+      <fs-fact-value value="{{fact.value}}" edit="[[edit]]"></fs-fact-value>
+    </template>
+    <template is="dom-if" if="{{_supportsDate(fact.type)}}">
+      <fs-date date="{{fact.date}}" edit="[[edit]]" client-name="[[clientName]]"></fs-date>
+    </template>
+    <template is="dom-if" if="{{_supportsPlace(fact.type)}}">
+      <fs-place place="{{fact.place}}" edit="[[edit]]" client-name="[[clientName]]"></fs-place>
+    </template>
+  </template>
+
+  <script>
+    /**
+     * `fs-fact`
+     * 
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsFact extends FsConclusionMixin(Polymer.Element) {
+      
+      static get is() { return 'fs-fact'; }
+      
+      static get properties() {
+        return {
+          
+          /** Fact data */
+          fact: {
+            type: Object,
+            notify: true,
+            observer: '_conclusionSync'
+          }
+          
+        };
+      }
+      
+      static get template() {
+        return super.conclusionTemplate(this.is);
+      }
+      
+      _conclusionSync(fact) {
+        this.conclusion = fact;
+      }
+      
+      _conclusionBody() {
+        return {
+          persons: [{
+            facts: [this.fact]
+          }]
+        };
+      }
+      
+      _factTypeDisplay(type) {
+        return FsFactTypes.displayName(type);
+      }
+      
+      _supportsPlace(type) {
+        return FsFactTypes.supportsPlace(type);
+      }
+      
+      _supportsDate(type) {
+        return FsFactTypes.supportsDate(type);
+      }
+      
+      _supportsValue(type) {
+        return FsFactTypes.supportsValue(type);
+      }
+    }
+
+    window.customElements.define(FsFact.is, FsFact);
+  </script>
+</dom-module>

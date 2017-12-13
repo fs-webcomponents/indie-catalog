@@ -1,0 +1,23 @@
+{
+  "name": "fs-fact",
+  "main": "fs-fact.html",
+  "version": "4.2.5",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-date": "fs-webcomponents/fs-date#^4.0.0",
+    "fs-place": "fs-webcomponents/fs-place#^4.0.0",
+    "fs-attribution": "fs-webcomponents/fs-attribution#^4.0.0",
+    "paper-input": "PolymerElements/paper-input#^2.0.2",
+    "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^2.0.0",
+    "paper-listbox": "PolymerElements/paper-listbox#^2.0.0",
+    "fs-conclusion-mixin": "fs-webcomponents/fs-conclusion-mixin#^4.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  }
+}

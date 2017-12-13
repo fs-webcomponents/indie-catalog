@@ -1,0 +1,147 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../polymer/lib/utils/debounce.html">
+<link rel="import" href="../paper-autocomplete/paper-autocomplete.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-request/fs-request.html">
+
+<dom-module id="fs-place">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <div id="place" hidden$="[[edit]]">{{_displayPlace(place)}}</div>
+    <template is="dom-if" if="[[edit]]">
+      <fs-request 
+        id="request"
+        client-name="[[clientName]]"
+        url="{{_computeUrl(place.original)}}"
+        headers='{"Accept":"application/x-gedcomx-atom+json"}'
+        on-response="_handleResponse"></fs-request>
+      <paper-autocomplete 
+        id="autocomplete" 
+        label="[[label]]"
+        no-label-float="[[no-label-float]]"
+        remote-source
+        disabled="{{disabled}}"
+        on-keyup="_autocompleteTextChanged"
+        on-autocomplete-selected="_autocompleteSelected"
+        on-autocomplete-reset-blur="_autocompleteCleared"></paper-autocomplete>
+    </template>
+  </template>
+
+  <script>
+    /**
+     * `fs-place`
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsPlace extends FSApiAwareMixin(Polymer.Element) {
+      
+      static get is() { return 'fs-place'; }
+      
+      static get properties() {
+        return {
+          place: {
+            type: Object,
+            notify: true
+          },
+          
+          label: {
+            type: String,
+            value: 'Place'
+          },
+          
+          noLabelFloat: {
+            type: Boolean,
+            value: false
+          },
+          
+          disabled: {
+            type: Boolean,
+            value: false
+          },
+          
+          /* Toggle edit mode */
+          edit: {
+            type: Boolean,
+            value: false,
+            observer: '_setupEdit'
+          },
+          
+          _debouncer: Object
+        };
+      }
+      
+      _displayPlace(place) {
+        if(!place) {
+          return '';
+        }
+        return place.original || (place.normalized && place.normalized[0] ? place.normalized[0].value : '');
+      }
+      
+      _setupEdit(edit) {
+        // Have to defer this execution to give time for Polymer to stamp the
+        // DOM since it's in a dom-if helper template
+        if(edit) {
+          setTimeout(() => {
+            this.shadowRoot.querySelector('#autocomplete').text = this._displayPlace(this.place);
+            this.shadowRoot.querySelector('#autocomplete').value = JSON.stringify(this.place);
+          });
+        }
+      }
+      
+      _computeUrl(original) {
+        if(original) {
+          return `/platform/places/search?q=name:"${original}"`;
+        }
+      }
+      
+      _autocompleteTextChanged() {
+        const text = this.shadowRoot.querySelector('#autocomplete').text;
+        if(text) {
+          if(!this.place) {
+            this.place = {};
+          }
+          this.set('place.original', text);
+          this._debouncer = Polymer.Debouncer.debounce(this._debouncer, Polymer.Async.timeOut.after(300), () => { 
+            this.shadowRoot.querySelector('#request').generateRequest(); 
+          });
+        } else {
+          this.place = undefined;
+        }
+      }
+      
+      _autocompleteSelected(e) {
+        this.place = JSON.parse(e.detail.value);
+      }
+      
+      _autocompleteCleared() {
+        this.place = undefined;
+      }
+      
+      _handleResponse(e) {
+        const response = e.detail.response;
+        if(response.statusCode === 200) {
+          const suggestions = response.data.entries.map((entry) => {
+            const place = entry.content.gedcomx.places[0];
+            return {
+              text: place.display.fullName,
+              value: JSON.stringify({
+                original: place.display.fullName,
+                normalized: place.names
+              })
+            };
+          });
+          this.shadowRoot.querySelector('#autocomplete').suggestions(suggestions);
+        }
+      }
+    }
+
+    window.customElements.define(FsPlace.is, FsPlace);
+  </script>
+</dom-module>

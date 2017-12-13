@@ -1,0 +1,32 @@
+{
+  "name": "fs-request",
+  "main": "fs-request.html",
+  "version": "4.2.4",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "FamilySearch"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "fs-client": "fs-webcomponents/fs-client#^4.0.0",
+    "fs-api-aware": "fs-webcomponents/fs-api-aware#^4.0.0"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  },
+  "homepage": "https://github.com/fs-webcomponents/fs-request",
+  "_release": "4.2.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "4.2.4",
+    "commit": "b493df3ff770661262a48f78cae5a1b864635252"
+  },
+  "_source": "https://github.com/fs-webcomponents/fs-request.git",
+  "_target": "^4.2.4",
+  "_originalSource": "fs-webcomponents/fs-request"
+}

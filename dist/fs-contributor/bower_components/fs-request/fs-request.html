@@ -1,0 +1,245 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../fs-client/fs-client.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+
+<script>
+  /**
+   * `fs-request`
+   * 
+   *     <fs-request url="{{boundUrl}}" on-response="{{responseHandler}}"></fs-request>
+   * 
+   * @customElement
+   * @polymer
+   * @demo demo/index.html
+   */
+  class FSRequest extends FSApiAwareMixin(Polymer.Element) {
+    
+    /**
+     * Fired when a response is received from the API
+     *
+     * @event fs-request-response
+     * @param {Object} data
+     * @param {Object} data.response API response
+     */
+    /**
+     * Fired when a response is received from the API
+     *
+     * @event response
+     * @param {Object} data
+     * @param {Object} data.response API response
+     */
+     
+    /**
+     * Fired when an API request fails (network errors only)
+     *
+     * @event fs-request-error
+     * @param {Object} data
+     * @param {Object} data.error error
+     */
+    /**
+     * Fired when an API request fails (network errors only)
+     *
+     * @event error
+     * @param {Object} data
+     * @param {Object} data.error error
+     */
+    
+    static get is() { return 'fs-request'; }
+    
+    static get properties() {
+      return {
+        
+        /** Whether requests should automatically be issued when request parameters change */
+        auto: {
+          type: Boolean,
+          value: false
+        },
+        
+        /** Only issue requests if the SDK client is authenticated */
+        requireAuthentication: {
+          type: Boolean,
+          value: false
+        },
+        
+        url: String,
+        
+        /** HTTP method */
+        method: {
+          type: String,
+          value: 'GET'
+        },
+        
+        /* Map of HTTP headers */
+        headers: Object,
+        
+        /* Request body; JSON object */
+        body: Object,
+        
+        /** Whether a request is in flight */
+        loading: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          notify: true
+        },
+        
+        /** Whether the request has completed */
+        completed: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          notify: true
+        },
+        
+        /** Whether the request has been sent */
+        sent: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          notify: true
+        },
+        
+        /** Whether the request has succeeded */
+        succeeded: {
+          type: Boolean,
+          readOnly: true,
+          notify: true
+        },
+        
+        /** Whether the request has failed */
+        failed: {
+          type: Boolean,
+          readOnly: true,
+          notify: true
+        },
+        
+        /** 
+         * Used when `requireAuthentication` is enabled to track whether 
+         * generateRequest() was called when the client wasn't authenticated
+         */
+        _requestDeferred: {
+          type: Boolean,
+          value: false
+        }
+      };
+    }
+    
+    static get observers() {
+      return [
+        '_requestOptionsChanged(auto, url)'
+      ];
+    }
+    
+    _getClient() {
+      return this.client.client;
+    }
+    
+    _ensureClient() {
+      if(!this.client) {
+        this.client = document.createElement('fs-client');
+        this.client.name = this.clientName;
+        this.client.ready();
+      }
+    }
+    
+    /**
+     * Finalize and execute the API request
+     */
+    generateRequest() {
+      this._ensureClient();
+      
+      if(this.requireAuthentication && !this.client.authenticated) {
+        this._deferRequest();
+        return;
+      }
+      
+      const options = {
+        method: this.method
+      };
+      if(this.headers) {
+        options.headers = this.headers;
+      }
+      if(this.body) {
+        options.body = this.body;
+      }
+      
+      this._setLoading(true);
+      this._setSent(true); // Not entirely true; this is at least one tick before it was actually sent
+      
+      this._getClient().request(this.url, options, (error, response) => {
+        this._setLoading(false);
+        if(error) {
+          this._handleError(error);
+        } else {
+          this._handleResponse(response);
+        }
+        // The last thing we do is mark as completed so that event listeners
+        // know we're all done when we say we're all done.
+        this._setCompleted(true);
+      });
+    }
+    
+    /**
+     * When using fs-request in JavaScript without ever attaching it to the DOM,
+     * events will not propagate. This is often undesired. To avoid this problem
+     * you may call this method passing a DOM node as the `element` parameter to
+     * have this request element attached to the given element for the duration
+     * of the request so that events may propagate through the given element.
+     * Do not use this method on fs-request elements that are in the DOM.
+     */
+    delegateEvents(element) {
+      element.appendChild(this);
+      this.addEventListener('completed-changed', () => {
+        this.remove();
+      });
+    }
+    
+    _handleResponse(response) {
+      this._setFailed(false);
+      this._setSucceeded(true);
+      this._fireEvent('fs-request-response', { response });
+      this._fireEvent('response', { response });
+    }
+    
+    _handleError(error) {
+      this._setSucceeded(false);
+      this._setFailed(true);
+      this._fireEvent('fs-request-error', { error });
+      this._fireEvent('error', { error });
+    }
+    
+    _fireEvent(name, detail) {
+      this.dispatchEvent(new CustomEvent(name, {
+        detail,
+        bubbles: true,
+        composed: true
+      }));
+    }
+    
+    _requestOptionsChanged() {
+      if(this.url == null) {
+        return;
+      }
+      if(this.auto) {
+        this.generateRequest();
+      }
+    }
+    
+    /**
+     * Defer the request until the client is authenticated. Used when
+     * `requireAuthentication` is enabled.
+     */
+    _deferRequest() {
+      this._requestDeferred = true;
+      var listener = (e) => {
+        if(e.detail.value) {
+          this.client.removeEventListener('authenticated-changed', listener);
+          this.generateRequest();
+        }
+      };
+      this.client.addEventListener('authenticated-changed', listener);
+    }
+  }
+
+  window.customElements.define(FSRequest.is, FSRequest);
+</script>

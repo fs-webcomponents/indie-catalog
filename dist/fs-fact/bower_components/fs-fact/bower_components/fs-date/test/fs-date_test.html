@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>fs-date test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../fs-date.html">
+  </head>
+  <body>
+
+    <test-fixture id="empty">
+      <template>
+        <fs-date></fs-date>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="display-date">
+      <template>
+        <fs-date></fs-date>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="empty-edit">
+      <template>
+        <fs-date edit></fs-date>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="edit-prefilled">
+      <template>
+        <fs-date edit></fs-date>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="clear">
+      <template>
+        <fs-date edit date='{"original":"Feb 3, 1889"}'></fs-date>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('fs-date', function() {
+
+        test('empty', function() {
+          var element = fixture('empty');
+          assert.equal(element.shadowRoot.querySelector('#date').textContent.trim(), '');
+        });
+        
+        test('display date', function() {
+          var element = fixture('display-date');
+          element.date = {
+            original: 'Feb 3, 1389'
+          };
+          assert.equal(element.shadowRoot.querySelector('#date').textContent, 'Feb 3, 1389');
+        });
+        
+        test('empty edit', function(done) {
+          var element = fixture('empty-edit');
+          setTimeout(() => {
+            assert(!!element.shadowRoot.querySelector('#autocomplete'));
+            assert(element.date === undefined);
+            done();
+          });
+        });
+        
+        test('edit prefilled', function(done) {
+          var element = fixture('empty-edit');
+          element.date = {
+            original: 'Feb 3, 1389'
+          };
+          assert.equal(element.shadowRoot.querySelector('#date').textContent, 'Feb 3, 1389');
+          setTimeout(() => {
+            assert(!!element.shadowRoot.querySelector('#autocomplete'));
+            assert(!!element.date);
+            done();
+          });
+        });
+        
+        test('clear', function(done){
+          var element = fixture('clear');
+          assert.equal(element.date.original, "Feb 3, 1889");
+          setTimeout(function(){
+            element.shadowRoot.querySelector('#autocomplete').clear();
+            assert.equal(element.date, undefined);
+            done();
+          });
+        });
+
+      });
+    </script>
+
+  </body>
+</html>

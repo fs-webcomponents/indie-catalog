@@ -1,0 +1,332 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/lib/elements/dom-if.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-request/fs-request.html">
+<link rel="import" href="fs-family.html">
+
+<!--
+Display a FamilySearch person's families. A person's families include families
+in which they are a child and families in which they are a spouse or parent.
+
+Basic example:
+
+    <fs-person-families person-id="PPP-PPPP"></fs-person-families>
+
+@group FamilySearch Elements
+@customElement
+@polymer
+@demo demo/index.html
+-->
+<dom-module id="fs-person-families">
+  <template>
+    <style>
+      :host {
+        display: block;
+        width: 100%;
+      }
+      
+      paper-card {
+        width: 100%;
+      }
+      
+      #columns {
+        display: flex;
+      }
+      
+      .column {
+        flex: 1;
+      }
+      
+      .column:last-child {
+        margin-left: 32px;
+      }
+      
+      fs-family {
+        margin: 16px 0;
+      }
+    </style>
+    <fs-request id="request"
+      auto
+      client-name="[[clientName]]" 
+      require-authentication
+      url="{{_computeUrl(personId)}}"
+      on-response="_handleResponse"
+      on-loading-changed="_updateLoading"></fs-request>
+    <div class="card-content">
+      <div id="columns">
+        <div class="column">
+          <div class="col-title">Spouses and Children</div>
+          <template is="dom-if" if="addPersons">
+            <paper-button on-tap="_addSpouseEvent">+ Add Spouse</paper-button>
+          </template>
+          <template is="dom-repeat" items="{{_parentFamilies}}">
+            <fs-family family="[[item.persons]]" 
+              add-persons="[[addPersons]]" 
+              client-name="[[clientName]]" 
+              on-add-child="_addChildEvent"
+              on-add-mother="_addCaprIds"
+              on-add-father="_addCaprIds"></fs-family>
+          </template>
+          <template is="dom-if" if="addPersons">
+            <paper-button on-tap="_addChildUnknownParentEvent">{{_addChildUnknownParentLabel(_gender)}}</paper-button>
+          </template>
+        </div>
+        <div class="column">
+          <div class="col-title">Parents and Siblings</div>
+          <template is="dom-if" if="addPersons">
+            <paper-button on-tap="_addParentEvent">+ Add Parent</paper-button>
+          </template>
+          <div>
+            <template is="dom-repeat" items="{{_childFamilies}}">
+              <fs-family family="[[item.persons]]" 
+                add-persons="[[addPersons]]" 
+                client-name="[[clientName]]"
+                on-add-child="_addChildEvent"
+                on-add-mother="_addCaprIds"
+                on-add-father="_addCaprIds"></fs-family>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    class FSPersonFamilies extends FSApiAwareMixin(Polymer.Element) {
+       
+      /**
+       * Fired when an add person button is clicked. The details may contain
+       * any of the documented parameters which are designed to be passed
+       * directly to an `fs-add-person` element.
+       * 
+       * @event add-person
+       * @param {{fatherId:string}} ID of the father of the family that the person will be added to
+       * @param {{motherId:string}} ID of the mother of the family that the person will be added to
+       * @param {{childId:string}} ID of the child that a parent will be added to
+       * @param {{spouseId:string}} ID of a spouse that a person will be added to
+       * @param {{caprIds:array}} List of child and parents relationship IDs that the person should be added to as a parent
+       * @param {{gender:string}} Expected gender of the person that will be added
+       */ 
+  
+      static get is() { return 'fs-person-families'; }
+      
+      static get properties() {
+        return {
+          personId: {
+            type: String,
+            observer: '_personIdChanged'
+          },
+          
+          /** Whether the API request is still oustanding */
+          loading: {
+            type: Boolean,
+            value: false,
+            notify: true,
+            readOnly: true
+          },
+          
+          /** Whether to show buttons for adding persons */
+          addPersons: {
+            type: Boolean,
+            value: false
+          },
+          
+          /** Main person's gender */
+          _gender: String,
+          
+          /** List of families where the person is a child */
+          _childFamilies: {
+            type: Array,
+            value: function(){
+              return [];
+            }
+          },
+          
+          /** List of families where the person is a spouse */
+          _parentFamilies: {
+            type: Array,
+            value: function(){
+              return [];
+            }
+          }
+          
+        };
+      }
+      
+      reload() {
+        this._clearFamilies();
+        this._gender = undefined;
+        this.$.request.generateRequest();
+      }
+      
+      _updateLoading(e) {
+        this._setLoading(e.detail.value);
+      }
+  
+      _personIdChanged() {
+        this._clearFamilies();
+      }
+      
+      _clearFamilies() {
+        this._childFamilies = [];
+        this._parentFamilies = [];
+      }
+      
+      _addParentEvent() {
+        this._fireAddPerson({
+          childId: this.personId
+        });
+      }
+      
+      _addSpouseEvent() {
+        this._fireAddPerson({
+          spouseId: this.personId,
+          gender: this._gender === 'http://gedcomx.org/Male' ? 'http://gedcomx.org/Female' : 'http://gedcomx.org/Male'
+        });
+      }
+      
+      /**
+       * Capture the add-child event from `fs-family` and reemit as an
+       * add-person event from this element.
+       */
+      _addChildEvent(e) {
+        this._fireAddPerson(e.detail);
+      }
+      
+      _addChildUnknownParentEvent() {
+        const detail = {};
+        if(this._gender === 'http://gedcomx.org/Male') {
+          detail.fatherId = this.personId;
+        }
+        if(this._gender === 'http://gedcomx.org/Female') {
+          detail.motherId = this.personId;
+        }
+        this._fireAddPerson(detail);
+      }
+      
+      /**
+       * Add a list of IDs of child-and-parents relationships to the add-mother
+       * and add-father events.
+       */
+      _addCaprIds(e) {
+        e.detail.caprIds = e.model.item.caprIds;
+        this._fireAddPerson(e.detail);
+      }
+      
+      /**
+       * Fire the `add-person` with the given details
+       */
+      _fireAddPerson(detail) {
+        this.dispatchEvent(new CustomEvent('add-person', {
+          detail,
+          bubbles: true,
+          composed: true
+        }));
+      }
+      
+      _addChildUnknownParentLabel(_gender) {
+        switch(_gender) {
+          case 'http://gedcomx.org/Male':
+            return '+ Add Child with an Unknown Mother';
+          case 'http://gedcomx.org/Female':
+            return '+ Add Child with an Unknown Father';
+          default:
+            return '+ Add Child of an Unknown Spouse';
+        }
+      }
+      
+      _computeUrl() {
+        if(this.personId) {
+          return `/platform/tree/persons/${this.personId}/families`;
+        }
+      }
+      
+      _handleResponse(e) {
+        if(e && e.detail && e.detail.response && e.detail.response.data && e.detail.response.data.persons) {
+          this._calculateFamilies(e.detail.response.data);
+        }
+      }
+      
+      /**
+       * Given the response body of a call to the Person's Families resource,
+       * return a list of families in {father, mother, children[]} format.
+       */
+      _calculateFamilies(data) {
+        
+        // We put all persons into a map keyed by their ID for easy access
+        var persons = {};
+        for(i = 0; i < data.persons.length; i++){
+          persons[data.persons[i].id] = data.persons[i];
+          if(data.persons[i].id === this.personId) {
+            this._gender = data.persons[i].gender.type;
+          }
+        }
+        
+        // We'll construct families by maintaining a map of family keys. 
+        // The keys will be [husband]:[wife].
+        var families = {};
+        
+        // First we process couple relationships where that the person is involved in.
+        var couples = Array.isArray(data.relationships) ? data.relationships.filter(r => r.type === 'http://gedcomx.org/Couple') : [];
+        couples.forEach((couple) => {
+          if(couple.person1.resourceId === this.personId || couple.person2.resourceId === this.personId) {
+            families[`${couple.person1.resourceId}:${couple.person2.resourceId}`] = {
+              persons: {
+                father: persons[couple.person1.resourceId],
+                mother: persons[couple.person2.resourceId],
+                children: []
+              },
+              caprIds: []
+            };
+          }
+        });
+        
+        // Now we process child and parents relationships of the person.
+        var caprs = data.childAndParentsRelationships,
+            rel, familyId, father, fatherId, mother, motherId, childId;
+        for(var i = 0; i < caprs.length; i++){
+          rel = caprs[i];
+          father = rel.father;
+          fatherId = father ? father.resourceId : '';
+          mother = rel.mother;
+          motherId = mother ? mother.resourceId : '';
+          familyId = fatherId + ':' + motherId;
+          childId = rel.child.resourceId;
+          
+          // Ignore relationships involving people that aren't returned in the
+          // persons list. They are from families of parents or children that this
+          // person isn't part of. I don't know why the API is returning their relationships.
+          if(persons[childId]
+               && (!fatherId || (fatherId && persons[fatherId]))
+               && (!motherId || (motherId && persons[motherId]))){
+            if(!families[familyId]){
+              families[familyId] = {
+                persons: {
+                  father: persons[fatherId],
+                  mother: persons[motherId],
+                  children: []
+                },
+                caprIds: []
+              };
+            }
+            families[familyId].persons.children.push(persons[childId]);
+            families[familyId].caprIds.push(rel.id);
+          }
+        }
+        
+        // Now we put the family objects in their proper category. We know that
+        // the persons is either a parent or a child in the families so we check
+        // if the personId is in the familyId [fatherId]:[motherId]. If yes then
+        // this is a parent family; if not then it's a child family.
+        for(familyId in families){
+          if(familyId.indexOf(this.personId) >= 0){
+            this.push('_parentFamilies', families[familyId]);
+          } else {
+            this.push('_childFamilies', families[familyId]);
+          }
+        }
+      }
+    }
+  
+    customElements.define(FSPersonFamilies.is, FSPersonFamilies);
+  </script>
+</dom-module>

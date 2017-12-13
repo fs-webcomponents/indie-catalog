@@ -1,0 +1,118 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../fs-request/fs-request.html">
+<link rel="import" href="../fs-api-aware/fs-api-aware.html">
+<link rel="import" href="../fs-person-chip/fs-person-chip.html">
+
+<dom-module id="fs-source-attachments">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      
+      fs-person-chip {
+        margin: 8px 0;
+      }
+    </style>
+    <fs-request
+      id="request"
+      url="{{_computeRequestUrl(url)}}"
+      client-name="[[clientName]]" 
+      require-authentication
+      on-response="_handleResponse"></fs-client>
+    <template is="dom-repeat" items="{{personIds}}">
+      <fs-person-chip person-id="{{item}}" clientName="[[clientName]]"></fs-person-chip>
+    </template>
+  </template>
+  <script>
+    
+    /**
+     * List persons that a source (URL) is attached to.
+     *  
+     * Basic example:
+     *  
+     *     <fs-source-attachments url="https://domain.com/source/url"></fs-source-attachments>
+     *  
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class FsSourceAttachments extends FSApiAwareMixin(Polymer.Element) {
+  
+      static get is() { return 'fs-source-attachments'; }
+      
+      static get properties() {
+        return {
+          url: {
+            type: String,
+            notify: true,
+            value: '',
+            observer: '_urlChanged'
+          },
+          personIds: {
+            type: Array,
+            notify: true,
+            readOnly: true,
+            value: function(){
+              return [];
+            }
+          }
+        };
+      }
+      
+      _computeRequestUrl(url) {
+        if(url) {
+          return `/platform/tree/source-references?source=${encodeURIComponent(url)}`;
+        }
+      }
+  
+      _urlChanged() {
+        if(this.url) {
+          this._debouncer = Polymer.Debouncer.debounce(
+            this._debouncer,
+            Polymer.Async.timeOut.after(400),
+            () => {
+              this.$.request.generateRequest();
+            }
+          );
+        } else {
+          this._setPersonIds([]);
+        }
+      }
+      
+      _handleResponse(e) {
+        const response = e.detail.response;
+        this._setPersonIds([]);
+        if(response.data && response.data.sourceDescriptions && response.data.persons) {
+          
+          // https://groups.google.com/a/ldsmail.net/d/msg/FSDN/Pg_VyWNYlzs/BECXG0nnBwAJ
+          // Urls are not matched exactly so we enforce exact matching here. First
+          // we gather a list of source Ids that actually match. If we found any
+          // then we compare the source Ids against source refs to get a list of
+          // persons that the matching sources are attached to.
+          const matchingSourceIds = response.data.sourceDescriptions.filter((sourceDescription) => {
+            return sourceDescription.about === this.url;
+          }).map((sourceDescription) => {
+            return sourceDescription.id;
+          });
+          
+          const matchingPersonIds = response.data.persons.filter((person) => {
+            for(let i = 0; i < person.sources.length; i++) {
+              if(matchingSourceIds.indexOf(person.sources[i].descriptionId) !== -1) {
+                return true;
+              }
+            }
+            return false;
+          }).map((person) => {
+            return person.id;
+          });
+          
+          this._setPersonIds(matchingPersonIds);
+        }
+      }
+      
+    }
+    
+    window.customElements.define(FsSourceAttachments.is, FsSourceAttachments);
+  </script>
+</dom-module>
